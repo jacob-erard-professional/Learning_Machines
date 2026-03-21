@@ -7,7 +7,7 @@
  */
 
 import { Router } from 'express';
-import { interpretCommand } from '../services/voiceCommandService.js';
+import { interpretCommand, polishAdminDictation } from '../services/voiceCommandService.js';
 
 const router = Router();
 
@@ -33,6 +33,29 @@ router.post('/interpret', async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error('[voiceCommand] interpret error:', err.message);
+    res.status(503).json({ error: 'AI unavailable. Please try again shortly.' });
+  }
+});
+
+/**
+ * @route POST /api/voice-command/polish
+ * Cleans up dictated admin notes / decision reasons.
+ *
+ * Body: { transcript: string }
+ * Response: { text: string }
+ */
+router.post('/polish', async (req, res) => {
+  const { transcript } = req.body ?? {};
+
+  if (!transcript || !String(transcript).trim()) {
+    return res.status(400).json({ error: 'transcript is required.' });
+  }
+
+  try {
+    const text = await polishAdminDictation(String(transcript));
+    res.json({ text });
+  } catch (err) {
+    console.error('[voiceCommand] polish error:', err.message);
     res.status(503).json({ error: 'AI unavailable. Please try again shortly.' });
   }
 });

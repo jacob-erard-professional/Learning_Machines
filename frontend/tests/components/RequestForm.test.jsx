@@ -260,6 +260,20 @@ describe('RequestForm', () => {
       });
     });
 
+    it('infers city and zip from a full address', async () => {
+      renderForm();
+
+      const addressInput = screen.getByLabelText(/event address/i);
+      fireEvent.change(addressInput, {
+        target: { value: '123 Main St, Salt Lake City, UT 84101' },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/city/i)).toHaveValue('Salt Lake City');
+        expect(screen.getByLabelText(/zip code/i)).toHaveValue('84101');
+      });
+    });
+
     it('shows ConfirmationCard on successful submit', async () => {
       const mockResult = {
         id: 'REQ-0001',

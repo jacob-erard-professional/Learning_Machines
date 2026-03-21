@@ -9,7 +9,12 @@
  */
 
 import { Router } from 'express';
-import { createSession, sendMessage, deleteSession } from '../services/voiceIntakeService.js';
+import {
+  createSession,
+  sendMessage,
+  deleteSession,
+  polishTranscript,
+} from '../services/voiceIntakeService.js';
 
 const router = Router();
 
@@ -59,6 +64,29 @@ router.post('/message', async (req, res) => {
       return res.status(404).json({ error: err.message });
     }
     console.error('[voiceIntake] sendMessage error:', err.message);
+    res.status(503).json({ error: 'AI unavailable. Please try again shortly.' });
+  }
+});
+
+/**
+ * @route POST /api/voice-intake/polish
+ * Cleans up dictated text with punctuation/casing while preserving meaning.
+ *
+ * Body: { transcript: string }
+ * Response: { text: string }
+ */
+router.post('/polish', async (req, res) => {
+  const { transcript } = req.body ?? {};
+
+  if (!transcript || !String(transcript).trim()) {
+    return res.status(400).json({ error: 'transcript is required.' });
+  }
+
+  try {
+    const text = await polishTranscript(String(transcript));
+    res.json({ text });
+  } catch (err) {
+    console.error('[voiceIntake] polishTranscript error:', err.message);
     res.status(503).json({ error: 'AI unavailable. Please try again shortly.' });
   }
 });

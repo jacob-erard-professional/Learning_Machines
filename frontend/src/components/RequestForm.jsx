@@ -21,6 +21,7 @@ const INITIAL_FORM = {
   alternateContactEmail: '',
   eventName: '',
   eventDate: '',
+  eventAddress: '',
   eventCity: '',
   eventZip: '',
   estimatedAttendees: '',
@@ -90,6 +91,66 @@ function formatPhone(raw) {
   return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
 }
 
+function normalizeVoiceFields(extractedFields) {
+  const normalized = { ...extractedFields };
+
+  if (normalized.requestorPhone) {
+    normalized.requestorPhone = formatPhone(String(normalized.requestorPhone));
+  }
+
+  if (normalized.requestorEmail) {
+    normalized.requestorEmail = String(normalized.requestorEmail).trim().toLowerCase();
+  }
+
+  if (normalized.eventZip) {
+    const digits = String(normalized.eventZip).replace(/[^\d-]/g, '');
+    normalized.eventZip = /^\d{9}$/.test(digits)
+      ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+      : digits;
+  }
+
+  if (normalized.requestType) {
+    const requestTypeMap = {
+      'staff support': 'staff_support',
+      staff_support: 'staff_support',
+      'mailed materials': 'mailed_materials',
+      mailed_materials: 'mailed_materials',
+      mail: 'mailed_materials',
+      pickup: 'pickup',
+      'pick up': 'pickup',
+    };
+    const key = String(normalized.requestType).trim().toLowerCase();
+    normalized.requestType = requestTypeMap[key] ?? normalized.requestType;
+  }
+
+  return normalized;
+}
+
+function inferLocationFromAddress(address) {
+  const value = String(address || '').trim();
+  if (!value) return {};
+
+  const zipMatch = value.match(/(\d{5}(?:-\d{4})?)\s*$/);
+  const zip = zipMatch?.[1] ?? null;
+
+  let city = null;
+
+  const commaPattern = value.match(/,\s*([^,]+?)\s*,\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?\s*$/i);
+  if (commaPattern?.[1]) {
+    city = commaPattern[1].trim();
+  } else {
+    const plainPattern = value.match(/\b([A-Za-z]+(?:[\s-][A-Za-z]+)*)\s+[A-Z]{2}\s+\d{5}(?:-\d{4})?\s*$/i);
+    if (plainPattern?.[1]) {
+      city = plainPattern[1].trim();
+    }
+  }
+
+  return {
+    eventCity: city || undefined,
+    eventZip: zip || undefined,
+  };
+}
+
 /** Validate a single field and return an error string or null. */
 function validateField(name, value) {
   switch (name) {
@@ -148,10 +209,11 @@ export default function RequestForm() {
 
   /** Called when the voice modal completes — merge extracted fields into form. */
   function handleVoiceComplete(extractedFields) {
+    const normalizedFields = normalizeVoiceFields(extractedFields);
     setForm((prev) => ({
       ...prev,
       ...Object.fromEntries(
-        Object.entries(extractedFields).filter(([, v]) => v !== null && v !== undefined && v !== '')
+        Object.entries(normalizedFields).filter(([, v]) => v !== null && v !== undefined && v !== '')
       ),
     }));
   }
@@ -159,7 +221,19 @@ export default function RequestForm() {
   function handleChange(e) {
     const { name } = e.target;
     const value = name === 'requestorPhone' ? formatPhone(e.target.value) : e.target.value;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      if (name !== 'eventAddress') {
+        return { ...prev, [name]: value };
+      }
+
+      const inferred = inferLocationFromAddress(value);
+      return {
+        ...prev,
+        [name]: value,
+        ...(inferred.eventCity ? { eventCity: inferred.eventCity } : {}),
+        ...(inferred.eventZip ? { eventZip: inferred.eventZip } : {}),
+      };
+    });
     if (touched[name]) {
       const err = validateField(name, value);
       setErrors((prev) => ({ ...prev, [name]: err }));
@@ -202,6 +276,7 @@ export default function RequestForm() {
       alternateContactEmail: form.alternateContactEmail.trim() || undefined,
       eventName: form.eventName.trim(),
       eventDate: form.eventDate,
+      eventAddress: form.eventAddress.trim() || undefined,
       eventCity: form.eventCity.trim(),
       eventZip: form.eventZip.trim(),
       estimatedAttendees: form.estimatedAttendees ? parseInt(form.estimatedAttendees, 10) : undefined,
@@ -525,6 +600,24 @@ export default function RequestForm() {
                 onChange={handleChange}
                 className={inputClasses(false)}
                 placeholder="e.g. 100"
+              />
+            </FormField>
+
+            <FormField
+              id="eventAddress"
+              label="Event Address"
+              hint="If you include city and ZIP in the address, we will auto-fill those fields when possible."
+              className="sm:col-span-2"
+            >
+              <input
+                id="eventAddress"
+                name="eventAddress"
+                type="text"
+                autoComplete="street-address"
+                value={form.eventAddress}
+                onChange={handleChange}
+                className={inputClasses(false)}
+                placeholder="123 Main St, Salt Lake City, UT 84101"
               />
             </FormField>
 

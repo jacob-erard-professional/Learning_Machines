@@ -84,6 +84,26 @@ describe('POST /api/voice-intake/message', () => {
   });
 });
 
+describe('POST /api/voice-intake/polish', () => {
+  it('returns 200 with cleaned text', async () => {
+    const res = await request(app)
+      .post('/api/voice-intake/polish')
+      .send({ transcript: 'hello my name is jane' });
+
+    expect(res.status).toBe(200);
+    expect(typeof res.body.text).toBe('string');
+  });
+
+  it('returns 400 when transcript is missing', async () => {
+    const res = await request(app)
+      .post('/api/voice-intake/polish')
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/transcript/i);
+  });
+});
+
 describe('DELETE /api/voice-intake/:sessionId', () => {
   it('returns 204 for an existing session', async () => {
     const start = await request(app).post('/api/voice-intake/start').send({});

@@ -54,6 +54,29 @@ function MicButton({ isRecording, isLoading, onClick }) {
   );
 }
 
+function VoiceStatusIndicator({ isRecording, isProcessing }) {
+  if (!isRecording && !isProcessing) return null;
+
+  const label = isRecording ? 'Listening' : 'Transcribing';
+  const toneClasses = isRecording
+    ? 'border-red-200 bg-red-50 text-red-700'
+    : 'border-teal-200 bg-teal-50 text-teal-700';
+  const pulseClasses = isRecording ? 'bg-red-500' : 'bg-teal-500';
+
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${toneClasses}`}
+      aria-live="polite"
+    >
+      <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
+        <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${pulseClasses}`} />
+        <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${pulseClasses}`} />
+      </span>
+      {label}
+    </div>
+  );
+}
+
 function ChatBubble({ role, text }) {
   const isUser = role === 'user';
   return (
@@ -131,6 +154,7 @@ export default function VoiceIntakeModal({ isOpen, onClose, onComplete, initialF
   const [messages, setMessages] = useState([]); // { role: 'assistant'|'user', text: string }
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isPolishingTranscript, setIsPolishingTranscript] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [isReviewing, setIsReviewing] = useState(false);
   const [reviewFields, setReviewFields] = useState({});
@@ -141,9 +165,11 @@ export default function VoiceIntakeModal({ isOpen, onClose, onComplete, initialF
 
   const {
     isModelLoading,
+    isTranscribing,
     modelProgress,
     isRecording,
     transcript,
+    isTranscriptFinal,
     error: voiceError,
     startRecording,
     stopRecording,
@@ -180,12 +206,50 @@ export default function VoiceIntakeModal({ isOpen, onClose, onComplete, initialF
 
   // When Whisper produces a transcript, put it in the text input for review
   useEffect(() => {
-    if (transcript) {
+    if (transcript && !isTranscriptFinal) {
       setInputText(transcript);
-      clearTranscript();
-      inputRef.current?.focus();
     }
-  }, [transcript, clearTranscript]);
+  }, [transcript, isTranscriptFinal]);
+
+  useEffect(() => {
+    if (!transcript || !isTranscriptFinal) return;
+
+    let cancelled = false;
+
+    async function polishText() {
+      setInputText(transcript);
+      setIsPolishingTranscript(true);
+
+      try {
+        const result = await apiPost('/api/voice-intake/polish', { transcript });
+        if (!cancelled) {
+          setInputText(result.text || transcript);
+          inputRef.current?.focus();
+        }
+      } catch (_) {
+        if (!cancelled) {
+          setInputText(transcript);
+          inputRef.current?.focus();
+        }
+      } finally {
+        if (!cancelled) {
+          setIsPolishingTranscript(false);
+          clearTranscript();
+        }
+      }
+    }
+
+    polishText();
+    return () => {
+      cancelled = true;
+    };
+  }, [transcript, isTranscriptFinal, clearTranscript]);
+
+  useEffect(() => {
+    if (!inputRef.current) return;
+    inputRef.current.style.height = '0px';
+    inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 160)}px`;
+  }, [inputText]);
 
   // Auto-scroll chat on new messages
   useEffect(() => {
@@ -283,7 +347,7 @@ export default function VoiceIntakeModal({ isOpen, onClose, onComplete, initialF
       aria-modal="true"
       aria-label="Voice intake assistant"
     >
-      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="relative flex h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div>
@@ -305,7 +369,7 @@ export default function VoiceIntakeModal({ isOpen, onClose, onComplete, initialF
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {isReviewing ? (
             <ReviewStep
               fields={reviewFields}
@@ -347,36 +411,51 @@ export default function VoiceIntakeModal({ isOpen, onClose, onComplete, initialF
         {/* Input row — hidden during review */}
         {!isReviewing && (
           <div className="px-5 py-3 border-t border-gray-100">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <VoiceStatusIndicator
+                isRecording={isRecording}
+                isProcessing={!isRecording && (isModelLoading || isTranscribing || isPolishingTranscript)}
+              />
+            </div>
+
             {/* Model loading progress */}
             {isModelLoading && (
               <div className="mb-2">
                 <p className="text-xs text-gray-500 mb-1">
-                  Loading voice model… {Math.round(modelProgress * 100)}%
+                  {isPolishingTranscript
+                    ? 'Cleaning up transcript…'
+                    : `Loading voice model… ${Math.round(modelProgress * 100)}%`}
                 </p>
                 <div className="h-1 w-full bg-gray-200 rounded">
                   <div
                     className="h-1 bg-teal-500 rounded transition-all duration-300"
-                    style={{ width: `${Math.round(modelProgress * 100)}%` }}
+                    style={{ width: `${isPolishingTranscript ? 100 : Math.round(modelProgress * 100)}%` }}
                   />
                 </div>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex items-center gap-2">
+            <form onSubmit={handleSubmit} className="flex items-end gap-2">
               <MicButton
                 isRecording={isRecording}
                 isLoading={isModelLoading}
                 onClick={handleMicToggle}
               />
-              <input
+              <textarea
                 ref={inputRef}
-                type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={isRecording ? 'Listening…' : 'Type or speak your response…'}
                 disabled={isSending || isRecording}
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:opacity-50"
+                rows={1}
+                className="flex-1 max-h-40 resize-none overflow-y-auto border border-gray-300 rounded-lg px-3 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:opacity-50"
                 aria-label="Message input"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
               />
               <button
                 type="submit"

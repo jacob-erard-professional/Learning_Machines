@@ -6,6 +6,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { apiPost } from '../lib/api.js';
 import LoadingSpinner from './ui/LoadingSpinner.jsx';
+import useSpeechDictation from '../hooks/useSpeechDictation.js';
 
 const SUGGESTION_CHIPS = [
   'What should I prioritize?',
@@ -38,6 +39,10 @@ export default function CopilotSidebar({ open, onClose }) {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const copilotDictation = useSpeechDictation({
+    polishPath: '/api/voice-command/polish',
+    onTranscript: (text) => setInput(text),
+  });
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -197,6 +202,40 @@ export default function CopilotSidebar({ open, onClose }) {
         {/* Input */}
         <div className="px-4 py-3 border-t border-gray-100 shrink-0">
           <div className="flex items-end gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                copilotDictation.isRecording
+                  ? copilotDictation.stopDictation()
+                  : copilotDictation.startDictation(input)
+              }
+              disabled={loading}
+              aria-label={copilotDictation.isRecording ? 'Stop dictating message' : 'Start dictating message'}
+              className={[
+                'shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500',
+                copilotDictation.isRecording
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : 'bg-brand-periwinkle-50 text-brand-purple-600 hover:bg-brand-periwinkle-100',
+                loading && 'opacity-40 cursor-not-allowed',
+              ].join(' ')}
+            >
+              <span className="relative flex h-4 w-4 items-center justify-center" aria-hidden="true">
+                {(copilotDictation.isRecording || copilotDictation.isPolishing) && (
+                  <span className="absolute inline-flex h-4 w-4 rounded-full bg-current opacity-30 animate-ping" />
+                )}
+                {copilotDictation.isRecording ? (
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="currentColor">
+                    <rect x="2" y="2" width="10" height="10" rx="1.5" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 1a2.5 2.5 0 0 0-2.5 2.5v5a2.5 2.5 0 0 0 5 0v-5A2.5 2.5 0 0 0 8 1z" />
+                    <path d="M4 8.5A4 4 0 0 0 12 8.5v-1h-1v1a3 3 0 0 1-6 0v-1H4v1z" />
+                    <path d="M7.5 13.5v1.5h1v-1.5A5.5 5.5 0 0 0 13.5 8h-1A4.5 4.5 0 0 1 7.5 12.5v1z" />
+                  </svg>
+                )}
+              </span>
+            </button>
             <label htmlFor="copilot-input" className="sr-only">Message AI Copilot</label>
             <textarea
               id="copilot-input"
@@ -223,7 +262,19 @@ export default function CopilotSidebar({ open, onClose }) {
               </svg>
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-1">Press Enter to send</p>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <p className="text-xs text-gray-400">Press Enter to send</p>
+            {(copilotDictation.isRecording || copilotDictation.isPolishing) && (
+              <p className="text-xs text-brand-purple-500" aria-live="polite">
+                {copilotDictation.isRecording ? 'Listening…' : 'Cleaning transcript…'}
+              </p>
+            )}
+          </div>
+          {copilotDictation.error && (
+            <p className="mt-1 text-xs text-red-600" role="alert">
+              {copilotDictation.error}
+            </p>
+          )}
         </div>
       </aside>
     </>

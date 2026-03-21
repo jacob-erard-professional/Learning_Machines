@@ -82,3 +82,29 @@ Your job: parse the admin's spoken command into a structured JSON action.
     throw err;
   }
 }
+
+/**
+ * Cleans up dictated admin notes and decision reasons for the admin workflow.
+ *
+ * @param {string} transcript
+ * @returns {Promise<string>}
+ */
+export async function polishAdminDictation(transcript) {
+  const cleanedTranscript = String(transcript || '').trim();
+  if (!cleanedTranscript) return '';
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 160,
+    temperature: 0,
+    system: `You clean up dictated text for an admin workflow in a community health request system.
+Preserve the original meaning.
+Rewrite lightly for clear internal notes or approval/rejection/hold reasons.
+Add punctuation, sentence casing, and obvious formatting fixes.
+Do not add new facts.
+Return only the cleaned text, with no quotes or commentary.`,
+    messages: [{ role: 'user', content: cleanedTranscript }],
+  });
+
+  return response.content[0]?.text?.trim() ?? cleanedTranscript;
+}

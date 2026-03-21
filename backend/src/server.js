@@ -11,21 +11,35 @@
 
 import 'dotenv/config';
 import app from './app.js';
-import { seedDatabase } from './data/store.js';
+import { initializeStore, seedDatabase } from './data/store.js';
 import { getDemoRequests } from './data/demoSeed.js';
+import { isGoogleSheetsConfigured } from './data/googleSheetsStore.js';
 
 const PORT = process.env.PORT ?? 3001;
 const NODE_ENV = process.env.NODE_ENV ?? 'development';
 
-// Seed demo data in development — gives judges real requests to explore
-if (NODE_ENV !== 'production') {
-  const demoRequests = getDemoRequests();
-  seedDatabase(demoRequests);
-  console.log(`[server] Seeded ${demoRequests.length} demo requests`);
+async function startServer() {
+  const storeState = await initializeStore();
+
+  // Seed demo data in development only when not using Google Sheets
+  if (NODE_ENV !== 'production' && !isGoogleSheetsConfigured()) {
+    const demoRequests = getDemoRequests();
+    seedDatabase(demoRequests);
+    console.log(`[server] Seeded ${demoRequests.length} demo requests`);
+  } else {
+    console.log(
+      `[server] Store source: ${storeState.source} (${storeState.requestCount} requests loaded)`
+    );
+  }
+
+  app.listen(PORT, () => {
+    console.log(`[server] Community Health Request System running on port ${PORT}`);
+    console.log(`[server] Environment: ${NODE_ENV}`);
+    console.log(`[server] Health check: http://localhost:${PORT}/api/health`);
+  });
 }
 
-app.listen(PORT, () => {
-  console.log(`[server] Community Health Request System running on port ${PORT}`);
-  console.log(`[server] Environment: ${NODE_ENV}`);
-  console.log(`[server] Health check: http://localhost:${PORT}/api/health`);
+startServer().catch((err) => {
+  console.error('[server] Failed to initialize store:', err);
+  process.exit(1);
 });

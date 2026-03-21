@@ -7,6 +7,12 @@
  * equivalents and the rest of the application requires zero changes.
  */
 
+import {
+  isGoogleSheetsConfigured,
+  loadStateFromGoogleSheets,
+  saveStateToGoogleSheets,
+} from './googleSheetsStore.js';
+
 /** @type {Array<Object>} Primary requests collection */
 let requests = [];
 
@@ -16,6 +22,24 @@ let requests = [];
  * @type {Array<Object>}
  */
 let adminOverrides = [];
+let persistChain = Promise.resolve();
+
+function queuePersist() {
+  if (!isGoogleSheetsConfigured()) return persistChain;
+
+  const snapshot = {
+    requests: [...requests],
+    adminOverrides: [...adminOverrides],
+  };
+
+  persistChain = persistChain
+    .then(() => saveStateToGoogleSheets(snapshot))
+    .catch((err) => {
+      console.error('[store] Google Sheets persistence failed:', err.message);
+    });
+
+  return persistChain;
+}
 
 // ---------------------------------------------------------------------------
 // Request CRUD
@@ -45,6 +69,7 @@ export function getRequestById(id) {
  */
 export function saveRequest(request) {
   requests.push(request);
+  void queuePersist();
   return request;
 }
 
@@ -62,6 +87,7 @@ export function updateRequest(id, updates) {
     ...updates,
     updatedAt: new Date().toISOString(),
   };
+  void queuePersist();
   return requests[idx];
 }
 
@@ -74,6 +100,7 @@ export function deleteRequest(id) {
   const idx = requests.findIndex((r) => r.id === id);
   if (idx === -1) return false;
   requests.splice(idx, 1);
+  void queuePersist();
   return true;
 }
 
@@ -128,6 +155,7 @@ export function saveAdminOverride(requestId, field, oldVal, newVal) {
     timestamp: new Date().toISOString(),
   };
   adminOverrides.push(override);
+  void queuePersist();
   return override;
 }
 
@@ -185,4 +213,31 @@ export function getAdminPatterns() {
 export function seedDatabase(seedRequests) {
   requests = [...seedRequests];
   adminOverrides = [];
+  void queuePersist();
+}
+
+/**
+ * Initializes the backing store.
+ * If Google Sheets is configured, load state from Sheets.
+ *
+ * @returns {Promise<{ source: 'memory'|'google_sheets', requestCount: number, overrideCount: number }>}
+ */
+export async function initializeStore() {
+  if (!isGoogleSheetsConfigured()) {
+    return {
+      source: 'memory',
+      requestCount: requests.length,
+      overrideCount: adminOverrides.length,
+    };
+  }
+
+  const state = await loadStateFromGoogleSheets();
+  requests = state.requests;
+  adminOverrides = state.adminOverrides;
+
+  return {
+    source: 'google_sheets',
+    requestCount: requests.length,
+    overrideCount: adminOverrides.length,
+  };
 }

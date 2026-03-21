@@ -20,7 +20,7 @@ async function getMockCreate() {
   return mod.__mockCreate;
 }
 
-import { interpretCommand } from '../../src/services/voiceCommandService.js';
+import { interpretCommand, polishAdminDictation } from '../../src/services/voiceCommandService.js';
 
 describe('interpretCommand', () => {
   beforeEach(async () => {
@@ -99,5 +99,17 @@ describe('interpretCommand', () => {
   it('returns unknown for empty command', async () => {
     const result = await interpretCommand('');
     expect(result.action).toBe('unknown');
+  });
+});
+
+describe('polishAdminDictation', () => {
+  it('returns cleaned dictated admin text', async () => {
+    const mockCreate = await getMockCreate();
+    mockCreate.mockResolvedValue({
+      content: [{ text: 'Need updated attendance estimate before approval.' }],
+    });
+
+    const result = await polishAdminDictation('need updated attendance estimate before approval');
+    expect(result).toBe('Need updated attendance estimate before approval.');
   });
 });

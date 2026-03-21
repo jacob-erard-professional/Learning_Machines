@@ -26,6 +26,7 @@ let whisperState = {
   modelProgress: 0,
   isRecording: false,
   transcript: '',
+  isTranscriptFinal: false,
   error: null,
 };
 
@@ -59,6 +60,7 @@ describe('VoiceIntakeModal', () => {
       modelProgress: 0,
       isRecording: false,
       transcript: '',
+      isTranscriptFinal: false,
       error: null,
     };
     mockStartRecording.mockReset();
@@ -76,6 +78,9 @@ describe('VoiceIntakeModal', () => {
       }
       if (path === '/api/voice-intake/message') {
         return { reply: 'Got it!', extractedFields: {}, isComplete: false };
+      }
+      if (path === '/api/voice-intake/polish') {
+        return { text: 'Cleaned up text.' };
       }
       return {};
     });
@@ -213,5 +218,25 @@ describe('VoiceIntakeModal', () => {
     renderModal();
     await waitFor(() => screen.getByText('Hi! What is your name?'));
     expect(screen.getByRole('button', { name: /start voice recording/i })).toBeInTheDocument();
+  });
+
+  it('polishes a final transcript before putting it in the input', async () => {
+    whisperState = {
+      ...whisperState,
+      transcript: 'hello my name is jane',
+      isTranscriptFinal: true,
+    };
+
+    renderModal();
+
+    await waitFor(() => {
+      expect(apiPost).toHaveBeenCalledWith('/api/voice-intake/polish', {
+        transcript: 'hello my name is jane',
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('textbox').value).toBe('Cleaned up text.');
+    });
   });
 });

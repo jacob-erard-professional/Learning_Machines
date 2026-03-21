@@ -11,6 +11,7 @@ import Button from './ui/Button.jsx';
 import LoadingSpinner from './ui/LoadingSpinner.jsx';
 import AiInsightsPanel from './AiInsightsPanel.jsx';
 import useRequests from '../hooks/useRequests.js';
+import useSpeechDictation from '../hooks/useSpeechDictation.js';
 
 const TABS = ['Overview', 'AI Insights', 'Audit Log'];
 
@@ -51,6 +52,14 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
   const updateLocalRequest = useRequests((s) => s.updateLocalRequest);
   const closeButtonRef = useRef(null);
   const modalRef = useRef(null);
+  const adminNotesDictation = useSpeechDictation({
+    polishPath: '/api/voice-command/polish',
+    onTranscript: (text) => setEditedFields((prev) => ({ ...prev, adminNotes: text })),
+  });
+  const actionNoteDictation = useSpeechDictation({
+    polishPath: '/api/voice-command/polish',
+    onTranscript: (text) => setActionNote(text),
+  });
 
   // Fetch request details
   useEffect(() => {
@@ -357,7 +366,19 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
               {/* Admin notes */}
               <Section title="Admin Notes">
                 <div>
-                  <label htmlFor="detail-admin-notes" className="block text-xs font-medium text-gray-500 mb-1">Internal Notes</label>
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <label htmlFor="detail-admin-notes" className="block text-xs font-medium text-gray-500">Internal Notes</label>
+                    <VoiceDictationButton
+                      isRecording={adminNotesDictation.isRecording}
+                      isPolishing={adminNotesDictation.isPolishing}
+                      onClick={() =>
+                        adminNotesDictation.isRecording
+                          ? adminNotesDictation.stopDictation()
+                          : adminNotesDictation.startDictation(merged.adminNotes || '')
+                      }
+                      label="Admin notes"
+                    />
+                  </div>
                   <textarea
                     id="detail-admin-notes"
                     name="adminNotes"
@@ -367,6 +388,9 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                     className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white resize-y transition-colors"
                     placeholder="Add internal notes..."
                   />
+                  {adminNotesDictation.error && (
+                    <p className="mt-1 text-xs text-red-600">{adminNotesDictation.error}</p>
+                  )}
                 </div>
               </Section>
 
@@ -462,9 +486,21 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
             )}
 
             <div>
-              <label htmlFor="action-note" className="block text-sm font-medium text-gray-700 mb-1">
-                Reason / Note {confirmModal.action !== 'approve' && <span className="text-red-500" aria-hidden="true">*</span>}
-              </label>
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <label htmlFor="action-note" className="block text-sm font-medium text-gray-700">
+                  Reason / Note {confirmModal.action !== 'approve' && <span className="text-red-500" aria-hidden="true">*</span>}
+                </label>
+                <VoiceDictationButton
+                  isRecording={actionNoteDictation.isRecording}
+                  isPolishing={actionNoteDictation.isPolishing}
+                  onClick={() =>
+                    actionNoteDictation.isRecording
+                      ? actionNoteDictation.stopDictation()
+                      : actionNoteDictation.startDictation(actionNote)
+                  }
+                  label="Decision note"
+                />
+              </div>
               <textarea
                 id="action-note"
                 rows={3}
@@ -474,6 +510,9 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                 placeholder="Add a note explaining this decision..."
                 aria-required={confirmModal.action !== 'approve'}
               />
+              {actionNoteDictation.error && (
+                <p className="mt-1 text-xs text-red-600">{actionNoteDictation.error}</p>
+              )}
             </div>
 
             <div className="flex gap-3 justify-end">
@@ -500,6 +539,33 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
         </div>
       )}
     </div>
+  );
+}
+
+function VoiceDictationButton({ isRecording, isPolishing, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+        isRecording
+          ? 'border-red-200 bg-red-50 text-red-700'
+          : 'border-brand-periwinkle-200 bg-brand-periwinkle-50 text-brand-purple-600 hover:bg-brand-periwinkle-100',
+      ].join(' ')}
+      aria-label={isRecording ? `Stop dictating ${label}` : `Start dictating ${label}`}
+    >
+      <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
+        <span
+          className={[
+            'absolute inline-flex h-full w-full rounded-full opacity-75',
+            isRecording || isPolishing ? 'animate-ping bg-current' : '',
+          ].join(' ')}
+        />
+        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-current" />
+      </span>
+      {isRecording ? 'Listening' : isPolishing ? 'Cleaning…' : 'Dictate'}
+    </button>
   );
 }
 

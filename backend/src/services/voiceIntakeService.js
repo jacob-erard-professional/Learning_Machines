@@ -12,6 +12,7 @@
 
 import { randomUUID } from 'crypto';
 import Anthropic from '@anthropic-ai/sdk';
+import { normalizeVoiceFields } from '../lib/voiceNormalization.js';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const MODEL = 'claude-sonnet-4-6';
@@ -84,7 +85,7 @@ Respond with valid JSON only — no markdown fences, no prose outside JSON:
  * @returns {object}
  */
 function makeExtractedFields(initialFields = {}) {
-  return {
+  return normalizeVoiceFields({
     requestorName:  initialFields.requestorName  || null,
     requestorEmail: initialFields.requestorEmail || null,
     requestorPhone: initialFields.requestorPhone || null,
@@ -93,7 +94,7 @@ function makeExtractedFields(initialFields = {}) {
     eventCity:      initialFields.eventCity      || null,
     eventZip:       initialFields.eventZip       || null,
     requestType:    initialFields.requestType    || null,
-  };
+  });
 }
 
 /**
@@ -164,7 +165,8 @@ export async function sendMessage(sessionId, userMessage) {
   const parsed = safeParseResponse(rawText);
 
   // Merge newly extracted non-null fields into session state
-  for (const [key, value] of Object.entries(parsed.extractedFields || {})) {
+  const normalizedFields = normalizeVoiceFields(parsed.extractedFields || {});
+  for (const [key, value] of Object.entries(normalizedFields)) {
     if (value !== null && value !== undefined && key in session.extractedFields) {
       session.extractedFields[key] = value;
     }
@@ -179,6 +181,36 @@ export async function sendMessage(sessionId, userMessage) {
     extractedFields: { ...session.extractedFields },
     isComplete: session.isComplete,
   };
+}
+
+/**
+ * Uses Claude to lightly clean up dictated text without changing meaning.
+ *
+ * @param {string} transcript
+ * @returns {Promise<string>}
+ */
+export async function polishTranscript(transcript) {
+  const cleanedTranscript = String(transcript || '').trim();
+  if (!cleanedTranscript) return '';
+
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 160,
+    temperature: 0,
+    system: `You clean up dictated text for a form input.
+Preserve the original meaning.
+Add punctuation, sentence casing, and obvious spoken-number formatting when helpful.
+Do not add new facts.
+Return only the cleaned text, no quotes or commentary.`,
+    messages: [
+      {
+        role: 'user',
+        content: cleanedTranscript,
+      },
+    ],
+  });
+
+  return response.content[0]?.text?.trim() ?? cleanedTranscript;
 }
 
 /**

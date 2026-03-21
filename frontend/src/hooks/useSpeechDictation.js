@@ -1,42 +1,21 @@
-/**
- * @file useWhisperTranscription.js
- * Request-side voice transcription hook built on the browser SpeechRecognition
- * API for fast interim and final results without downloading a local model.
- *
- * The public API stays compatible with the previous hook so the modal can
- * reuse it unchanged.
- */
-
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { apiPost } from '../lib/api.js';
 
 function getSpeechRecognition() {
   if (typeof window === 'undefined') return null;
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 }
 
-export default function useWhisperTranscription() {
-  const [isModelLoading, setIsModelLoading] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  const [modelProgress, setModelProgress] = useState(1);
+export default function useSpeechDictation({ polishPath, onTranscript }) {
   const [isRecording, setIsRecording] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [isTranscriptFinal, setIsTranscriptFinal] = useState(false);
+  const [isPolishing, setIsPolishing] = useState(false);
   const [error, setError] = useState(null);
 
   const recognitionRef = useRef(null);
+  const baseTextRef = useRef('');
   const finalTranscriptRef = useRef('');
 
-  const clearTranscript = useCallback(() => {
-    setTranscript('');
-    setIsTranscriptFinal(false);
-    setError(null);
-  }, []);
-
-  const stopRecording = useCallback(() => {
-    recognitionRef.current?.stop();
-  }, []);
-
-  const startRecording = useCallback(async () => {
+  const startDictation = useCallback((baseText = '') => {
     const SpeechRecognition = getSpeechRecognition();
     if (!SpeechRecognition) {
       setError('Voice input is not supported in this browser. Try Chrome or Edge.');
@@ -44,13 +23,10 @@ export default function useWhisperTranscription() {
     }
 
     recognitionRef.current?.abort();
+    baseTextRef.current = String(baseText || '').trim();
     finalTranscriptRef.current = '';
-    setTranscript('');
-    setIsTranscriptFinal(false);
     setError(null);
-    setIsModelLoading(false);
-    setModelProgress(1);
-    setIsTranscribing(false);
+    setIsPolishing(false);
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
@@ -78,14 +54,16 @@ export default function useWhisperTranscription() {
       }
 
       finalTranscriptRef.current = finalTranscript;
-      setTranscript(`${finalTranscript} ${interimTranscript}`.trim());
-      setIsTranscriptFinal(false);
+      const combined = [baseTextRef.current, finalTranscript, interimTranscript.trim()]
+        .filter(Boolean)
+        .join(baseTextRef.current ? '\n' : ' ')
+        .trim();
+      onTranscript?.(combined);
     };
 
     recognition.onerror = (event) => {
       setIsRecording(false);
-      setIsTranscribing(false);
-
+      setIsPolishing(false);
       if (event.error === 'aborted') return;
 
       const message =
@@ -98,16 +76,39 @@ export default function useWhisperTranscription() {
       setError(message);
     };
 
-    recognition.onend = () => {
+    recognition.onend = async () => {
       setIsRecording(false);
-      setIsTranscribing(false);
       recognitionRef.current = null;
-      setTranscript((current) => current.trim());
-      setIsTranscriptFinal(true);
+
+      const finalText = finalTranscriptRef.current.trim();
+      if (!finalText) return;
+
+      setIsPolishing(true);
+      try {
+        const { text } = await apiPost(polishPath, { transcript: finalText });
+        const combined = [baseTextRef.current, text || finalText]
+          .filter(Boolean)
+          .join(baseTextRef.current ? '\n' : ' ')
+          .trim();
+        onTranscript?.(combined);
+      } catch (err) {
+        const combined = [baseTextRef.current, finalText]
+          .filter(Boolean)
+          .join(baseTextRef.current ? '\n' : ' ')
+          .trim();
+        onTranscript?.(combined);
+        setError(err.message || 'Could not clean up dictated text.');
+      } finally {
+        setIsPolishing(false);
+      }
     };
 
     recognitionRef.current = recognition;
     recognition.start();
+  }, [onTranscript, polishPath]);
+
+  const stopDictation = useCallback(() => {
+    recognitionRef.current?.stop();
   }, []);
 
   useEffect(() => {
@@ -117,15 +118,10 @@ export default function useWhisperTranscription() {
   }, []);
 
   return {
-    isModelLoading,
-    isTranscribing,
-    modelProgress,
     isRecording,
-    transcript,
-    isTranscriptFinal,
+    isPolishing,
     error,
-    startRecording,
-    stopRecording,
-    clearTranscript,
+    startDictation,
+    stopDictation,
   };
 }

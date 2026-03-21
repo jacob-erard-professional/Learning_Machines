@@ -76,6 +76,7 @@ export async function createRequest(body) {
     requestorName: body.requestorName,
     eventName: body.eventName,
     eventDate: body.eventDate,
+    eventAddress: body.eventAddress ?? '',
     eventCity: body.eventCity,
     eventZip: body.eventZip,
     eventType: intakeResult?.eventType ?? 'general',
@@ -144,6 +145,7 @@ export async function createRequest(body) {
     // Event info
     eventName: body.eventName,
     eventDate: body.eventDate,
+    eventAddress: body.eventAddress ?? null,
     eventCity: body.eventCity,
     eventZip: body.eventZip,
     estimatedAttendees: body.estimatedAttendees ?? null,

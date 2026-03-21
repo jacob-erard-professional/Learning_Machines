@@ -1,159 +1,167 @@
 /**
  * @file useWhisperTranscription.test.js
- * Unit tests for useWhisperTranscription hook.
- * The Web Worker and useVoiceCapture are mocked.
+ * Unit tests for the browser SpeechRecognition-backed voice hook.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-
-// ---------------------------------------------------------------------------
-// Mock useVoiceCapture
-// ---------------------------------------------------------------------------
-const mockStartCapture = vi.fn();
-const mockStopCapture = vi.fn();
-const mockReset = vi.fn();
-let captureState = {
-  isRecording: false,
-  audioBlob: null,
-  error: null,
-};
-
-vi.mock('../../src/hooks/useVoiceCapture.js', () => ({
-  default: () => ({
-    ...captureState,
-    startCapture: mockStartCapture,
-    stopCapture: mockStopCapture,
-    reset: mockReset,
-  }),
-}));
-
-// ---------------------------------------------------------------------------
-// Mock Web Worker
-// ---------------------------------------------------------------------------
-let _workerInstance = null;
-const mockWorkerPostMessage = vi.fn();
-
-class MockWorker {
-  constructor() {
-    this.onmessage = null;
-    _workerInstance = this;
-  }
-  postMessage(data) {
-    mockWorkerPostMessage(data);
-  }
-  terminate() {
-    _workerInstance = null;
-  }
-  /** Helper: simulate incoming message from worker */
-  simulateMessage(data) {
-    this.onmessage?.({ data });
-  }
-}
-
-vi.stubGlobal('Worker', MockWorker);
-
-// ---------------------------------------------------------------------------
-// Mock URL as a proper constructor (needed for `new URL(path, base)`)
-// ---------------------------------------------------------------------------
-class MockURL {
-  constructor(url) { this.href = String(url); }
-  toString() { return this.href; }
-  static createObjectURL() { return 'blob:mock-url'; }
-  static revokeObjectURL() {}
-}
-vi.stubGlobal('URL', MockURL);
-
 import useWhisperTranscription from '../../src/hooks/useWhisperTranscription.js';
+
+let recognitionInstance = null;
+
+class MockRecognition {
+  constructor() {
+    this.onstart = null;
+    this.onresult = null;
+    this.onerror = null;
+    this.onend = null;
+    this.start = vi.fn(() => {
+      this.onstart?.();
+    });
+    this.stop = vi.fn(() => {
+      this.onend?.();
+    });
+    this.abort = vi.fn();
+    recognitionInstance = this;
+  }
+
+  emitResult(results, resultIndex = 0) {
+    this.onresult?.({ results, resultIndex });
+  }
+
+  emitError(error) {
+    this.onerror?.({ error });
+  }
+}
 
 describe('useWhisperTranscription', () => {
   beforeEach(() => {
-    captureState = { isRecording: false, audioBlob: null, error: null };
-    mockStartCapture.mockReset();
-    mockStopCapture.mockReset();
-    mockReset.mockReset();
-    mockWorkerPostMessage.mockReset();
-    _workerInstance = null;
+    recognitionInstance = null;
+    window.SpeechRecognition = MockRecognition;
+    window.webkitSpeechRecognition = undefined;
   });
 
   it('initial state is idle', () => {
     const { result } = renderHook(() => useWhisperTranscription());
     expect(result.current.isRecording).toBe(false);
     expect(result.current.transcript).toBe('');
+    expect(result.current.isTranscriptFinal).toBe(false);
     expect(result.current.error).toBeNull();
     expect(result.current.isModelLoading).toBe(false);
   });
 
-  it('startRecording calls startCapture', async () => {
+  it('starts browser speech recognition', async () => {
     const { result } = renderHook(() => useWhisperTranscription());
+
     await act(async () => {
       await result.current.startRecording();
     });
-    expect(mockStartCapture).toHaveBeenCalledOnce();
+
+    expect(recognitionInstance).not.toBeNull();
+    expect(recognitionInstance.start).toHaveBeenCalledOnce();
+    expect(result.current.isRecording).toBe(true);
+    expect(result.current.isTranscriptFinal).toBe(false);
   });
 
-  it('stopRecording calls stopCapture', () => {
+  it('stops active recognition', async () => {
     const { result } = renderHook(() => useWhisperTranscription());
+
+    await act(async () => {
+      await result.current.startRecording();
+    });
+
     act(() => {
       result.current.stopRecording();
     });
-    expect(mockStopCapture).toHaveBeenCalledOnce();
+
+    expect(recognitionInstance.stop).toHaveBeenCalledOnce();
+    expect(result.current.isRecording).toBe(false);
   });
 
-  it('clearTranscript resets transcript', async () => {
+  it('updates transcript from speech results and clears it', async () => {
     const { result } = renderHook(() => useWhisperTranscription());
 
-    // Spin up the worker first so we can simulate messages
-    await act(async () => { await result.current.startRecording(); });
+    await act(async () => {
+      await result.current.startRecording();
+    });
 
-    act(() => { _workerInstance?.simulateMessage({ type: 'transcript', text: 'Hello world' }); });
+    act(() => {
+      recognitionInstance.emitResult([
+        { 0: { transcript: 'Hello world' }, isFinal: true, length: 1 },
+      ]);
+    });
+
     expect(result.current.transcript).toBe('Hello world');
+    expect(result.current.isTranscriptFinal).toBe(false);
 
-    act(() => { result.current.clearTranscript(); });
+    act(() => {
+      result.current.clearTranscript();
+    });
+
     expect(result.current.transcript).toBe('');
+    expect(result.current.isTranscriptFinal).toBe(false);
   });
 
-  it('sets isModelLoading while worker reports loading', async () => {
+  it('shows interim transcript immediately', async () => {
     const { result } = renderHook(() => useWhisperTranscription());
-    await act(async () => { await result.current.startRecording(); });
 
-    act(() => { _workerInstance?.simulateMessage({ type: 'loading', progress: 0.4 }); });
+    await act(async () => {
+      await result.current.startRecording();
+    });
 
-    expect(result.current.isModelLoading).toBe(true);
-    expect(result.current.modelProgress).toBeCloseTo(0.4);
-  });
-
-  it('clears isModelLoading when model is ready', async () => {
-    const { result } = renderHook(() => useWhisperTranscription());
-    await act(async () => { await result.current.startRecording(); });
-
-    act(() => { _workerInstance?.simulateMessage({ type: 'loading', progress: 1.0 }); });
-    act(() => { _workerInstance?.simulateMessage({ type: 'ready' }); });
-
-    expect(result.current.isModelLoading).toBe(false);
-  });
-
-  it('sets transcript when worker returns transcript message', async () => {
-    const { result } = renderHook(() => useWhisperTranscription());
-    await act(async () => { await result.current.startRecording(); });
-
-    act(() => { _workerInstance?.simulateMessage({ type: 'transcript', text: 'Test transcript' }); });
+    act(() => {
+      recognitionInstance.emitResult([
+        { 0: { transcript: 'Test transcript' }, isFinal: false, length: 1 },
+      ]);
+    });
 
     expect(result.current.transcript).toBe('Test transcript');
+    expect(result.current.isModelLoading).toBe(false);
+    expect(result.current.modelProgress).toBe(1);
+    expect(result.current.isTranscriptFinal).toBe(false);
   });
 
-  it('sets error when worker returns error message', async () => {
+  it('marks transcript final when recognition ends', async () => {
     const { result } = renderHook(() => useWhisperTranscription());
-    await act(async () => { await result.current.startRecording(); });
 
-    act(() => { _workerInstance?.simulateMessage({ type: 'error', message: 'Model load failed' }); });
+    await act(async () => {
+      await result.current.startRecording();
+    });
 
-    expect(result.current.error).toBe('Model load failed');
+    act(() => {
+      recognitionInstance.emitResult([
+        { 0: { transcript: 'Final text' }, isFinal: true, length: 1 },
+      ]);
+      recognitionInstance.stop();
+    });
+
+    expect(result.current.transcript).toBe('Final text');
+    expect(result.current.isTranscriptFinal).toBe(true);
   });
 
-  it('capture error is surfaced through error state', () => {
-    captureState = { isRecording: false, audioBlob: null, error: 'Mic denied' };
+  it('surfaces speech recognition errors', async () => {
     const { result } = renderHook(() => useWhisperTranscription());
-    expect(result.current.error).toBe('Mic denied');
+
+    await act(async () => {
+      await result.current.startRecording();
+    });
+
+    act(() => {
+      recognitionInstance.emitError('network');
+    });
+
+    expect(result.current.error).toBe('Speech recognition error: network');
+  });
+
+  it('handles unsupported browsers', async () => {
+    window.SpeechRecognition = undefined;
+
+    const { result } = renderHook(() => useWhisperTranscription());
+
+    await act(async () => {
+      await result.current.startRecording();
+    });
+
+    expect(result.current.error).toMatch(/not supported/i);
   });
 });
