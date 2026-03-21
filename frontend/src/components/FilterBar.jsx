@@ -31,6 +31,16 @@ const PRIORITY_OPTIONS = [
   { value: 'low', label: 'Low' },
 ];
 
+// Combined sort options — encodes both field and direction
+const SORT_OPTIONS = [
+  { value: 'createdAt:desc',      label: 'Newest first' },
+  { value: 'createdAt:asc',       label: 'Oldest first' },
+  { value: 'eventDate:asc',       label: 'Event date ↑' },
+  { value: 'eventDate:desc',      label: 'Event date ↓' },
+  { value: 'requestorName:asc',   label: 'Name A → Z' },
+  { value: 'requestorName:desc',  label: 'Name Z → A' },
+];
+
 /**
  * Filter bar for the admin dashboard.
  * Syncs all filter state to URL search params and the Zustand store.
@@ -51,6 +61,8 @@ export default function FilterBar() {
     const urlDateFrom = searchParams.get('dateFrom') || '';
     const urlDateTo = searchParams.get('dateTo') || '';
     const urlSearch = searchParams.get('search') || '';
+    const urlSortBy = searchParams.get('sortBy') || 'createdAt';
+    const urlSortDir = searchParams.get('sortDir') || 'desc';
 
     if (urlStatus !== filters.statusFilter) setFilter('statusFilter', urlStatus);
     if (urlRoute !== filters.routeFilter) setFilter('routeFilter', urlRoute);
@@ -58,6 +70,8 @@ export default function FilterBar() {
     if (urlDateFrom !== filters.dateFrom) setFilter('dateFrom', urlDateFrom);
     if (urlDateTo !== filters.dateTo) setFilter('dateTo', urlDateTo);
     if (urlSearch !== filters.search) setFilter('search', urlSearch);
+    if (urlSortBy !== filters.sortBy) setFilter('sortBy', urlSortBy);
+    if (urlSortDir !== filters.sortDir) setFilter('sortDir', urlSortDir);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -100,6 +114,18 @@ export default function FilterBar() {
     };
   }
 
+  function handleSortChange(e) {
+    const [sortBy, sortDir] = e.target.value.split(':');
+    setFilter('sortBy', sortBy);
+    setFilter('sortDir', sortDir);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('sortBy', sortBy);
+      next.set('sortDir', sortDir);
+      return next;
+    }, { replace: true });
+  }
+
   function clearFilters() {
     setFilter('search', '');
     setFilter('statusFilter', 'all');
@@ -107,6 +133,8 @@ export default function FilterBar() {
     setFilter('priorityFilter', 'all');
     setFilter('dateFrom', '');
     setFilter('dateTo', '');
+    setFilter('sortBy', 'createdAt');
+    setFilter('sortDir', 'desc');
     setSearchParams({}, { replace: true });
   }
 
@@ -116,7 +144,9 @@ export default function FilterBar() {
     filters.routeFilter !== 'all' ||
     filters.priorityFilter !== 'all' ||
     filters.dateFrom ||
-    filters.dateTo
+    filters.dateTo ||
+    filters.sortBy !== 'createdAt' ||
+    filters.sortDir !== 'desc'
   );
 
   return (
@@ -182,6 +212,21 @@ export default function FilterBar() {
             ))}
           </select>
         </div>
+      </div>
+
+      {/* Sort row */}
+      <div className="flex items-center gap-2">
+        <label htmlFor="filter-sort" className="text-xs text-gray-500 whitespace-nowrap">Sort by</label>
+        <select
+          id="filter-sort"
+          value={`${filters.sortBy}:${filters.sortDir}`}
+          onChange={handleSortChange}
+          className="flex-1 text-sm border border-brand-periwinkle-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
       </div>
 
       {/* Date range + clear */}
