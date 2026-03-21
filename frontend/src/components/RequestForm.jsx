@@ -306,6 +306,10 @@ export default function RequestForm() {
     } catch (err) {
       if (err.status === 409) {
         setDuplicateWarning(err);
+      } else if (err.status === 503 && err.id) {
+        // Request was saved but AI processing failed — treat as success with a note
+        setResult(err);
+        setDuplicateWarning(null);
       } else if (err.fields) {
         // Server-side validation errors
         setErrors((prev) => ({ ...prev, ...err.fields }));

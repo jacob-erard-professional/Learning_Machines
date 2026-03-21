@@ -47,6 +47,7 @@ async function apiFetch(path, options = {}) {
       error: body?.error || 'API_ERROR',
       message: body?.message || `Request failed with status ${response.status}`,
       fields: body?.fields || null,
+      ...(typeof body === 'object' && body !== null ? body : {}),
     };
   }
 
