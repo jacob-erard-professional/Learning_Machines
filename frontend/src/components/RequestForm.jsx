@@ -278,23 +278,23 @@ export default function RequestForm() {
         {/* Duplicate warning banner */}
         {duplicateWarning && (
           <div
-            className="bg-ihc-amber-100 border border-ihc-amber-300 rounded-lg px-4 py-3 flex items-start gap-3"
+            className="bg-brand-yellow-100 border border-brand-yellow-300 rounded-lg px-4 py-3 flex items-start gap-3"
             role="alert"
             aria-live="polite"
           >
-            <svg className="w-5 h-5 text-ihc-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <svg className="w-5 h-5 text-brand-yellow-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
             </svg>
             <div className="flex-1">
-              <p className="text-sm font-medium text-ihc-amber-800">Possible duplicate detected</p>
-              <p className="text-sm text-ihc-amber-700 mt-0.5">
+              <p className="text-sm font-medium text-brand-yellow-700">Possible duplicate detected</p>
+              <p className="text-sm text-brand-yellow-700 mt-0.5">
                 {duplicateWarning.message || 'A similar request may already exist for this event.'}
               </p>
             </div>
             <button
               type="button"
               onClick={() => submit(true)}
-              className="text-sm font-medium text-ihc-amber-800 underline hover:text-ihc-amber-900 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-amber-500 rounded"
+              className="text-sm font-medium text-brand-yellow-700 underline hover:text-brand-yellow-900 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-yellow-500 rounded"
             >
               Submit anyway
             </button>
@@ -303,7 +303,7 @@ export default function RequestForm() {
 
         {/* Section 1: Requestor Info */}
         <Card className="overflow-hidden">
-          <div className="bg-ihc-blue-500 px-6 py-3">
+          <div className="bg-brand-navy-500 px-6 py-3">
             <h2 className="text-white font-semibold text-sm uppercase tracking-wider">
               1. Requestor Information
             </h2>
@@ -419,7 +419,7 @@ export default function RequestForm() {
 
         {/* Section 2: Event Details */}
         <Card className="overflow-hidden">
-          <div className="bg-ihc-teal-500 px-6 py-3">
+          <div className="bg-brand-purple-500 px-6 py-3">
             <h2 className="text-white font-semibold text-sm uppercase tracking-wider">
               2. Event Details
             </h2>
@@ -553,9 +553,9 @@ export default function RequestForm() {
 
         {/* Section 3: Request Type */}
         <Card className="overflow-hidden">
-          <div className="bg-ihc-blue-700 px-6 py-3">
+          <div className="bg-brand-navy-600 px-6 py-3">
             <h2 className="text-white font-semibold text-sm uppercase tracking-wider">
-              3. Request Type <span className="font-normal normal-case tracking-normal text-ihc-blue-200">(required)</span>
+              3. Request Type <span className="font-normal normal-case tracking-normal text-brand-periwinkle-200">(required)</span>
             </h2>
           </div>
           <div className="px-6 py-5">
@@ -584,26 +584,26 @@ export default function RequestForm() {
                     onClick={() => selectRequestType(type.value)}
                     className={[
                       'relative flex flex-col items-start gap-3 p-4 rounded-xl border-2 text-left transition-all duration-150',
-                      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500',
+                      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500',
                       isSelected
-                        ? 'border-ihc-blue-500 bg-ihc-blue-50 shadow-card-hover'
-                        : 'border-gray-200 bg-white hover:border-ihc-blue-300 hover:bg-ihc-blue-50/40',
+                        ? 'border-brand-purple-500 bg-brand-periwinkle-50 shadow-card-hover'
+                        : 'border-gray-200 bg-white hover:border-brand-purple-300 hover:bg-brand-periwinkle-50/40',
                     ].join(' ')}
                   >
                     <div
-                      className={`p-2 rounded-lg ${isSelected ? 'bg-ihc-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                      className={`p-2 rounded-lg ${isSelected ? 'bg-brand-purple-500 text-white' : 'bg-gray-100 text-gray-500'}`}
                       aria-hidden="true"
                     >
                       {type.icon}
                     </div>
                     <div>
-                      <p className={`font-semibold text-sm ${isSelected ? 'text-ihc-blue-700' : 'text-gray-900'}`}>
+                      <p className={`font-semibold text-sm ${isSelected ? 'text-brand-purple-700' : 'text-gray-900'}`}>
                         {type.label}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{type.description}</p>
                     </div>
                     {isSelected && (
-                      <span className="absolute top-3 right-3 text-ihc-blue-500" aria-hidden="true">
+                      <span className="absolute top-3 right-3 text-brand-purple-500" aria-hidden="true">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                         </svg>
@@ -621,7 +621,7 @@ export default function RequestForm() {
           <button
             type="button"
             onClick={() => setAssetOpen((prev) => !prev)}
-            className="w-full flex items-center justify-between bg-gray-50 px-6 py-3 hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500 rounded-t-xl"
+            className="w-full flex items-center justify-between bg-gray-50 px-6 py-3 hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500 rounded-t-xl"
             aria-expanded={assetOpen}
             aria-controls="asset-preferences-section"
           >
@@ -716,7 +716,7 @@ function inputClasses(hasError) {
   return [
     'block w-full rounded-lg border px-3 py-2 text-sm text-gray-900',
     'bg-white placeholder:text-gray-400',
-    'focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-ihc-blue-500 focus:border-ihc-blue-500',
+    'focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-brand-purple-500 focus:border-brand-purple-500',
     'transition-colors duration-100',
     hasError
       ? 'border-red-400 focus:border-red-500 focus:ring-red-500 bg-red-50'

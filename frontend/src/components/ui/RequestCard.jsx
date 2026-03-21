@@ -68,16 +68,16 @@ export default function RequestCard({ request, onClick, isSelected = false }) {
       aria-label={`Request ${request.id}: ${request.eventName}, ${eventDate}, ${request.eventCity}. Status: ${request.status}`}
       className={[
         'w-full px-4 py-3.5 flex items-start gap-3 cursor-pointer transition-all duration-100',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ihc-blue-500',
+        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-purple-500',
         'border-b border-gray-100 last:border-0',
         isSelected
-          ? 'bg-ihc-blue-50 border-l-4 border-l-ihc-blue-500 pl-3'
+          ? 'bg-brand-periwinkle-100 border-l-4 border-l-brand-purple-500 pl-3'
           : 'bg-white hover:bg-gray-50 border-l-4 border-l-transparent',
       ].join(' ')}
     >
       {/* Route icon */}
       <span
-        className={`shrink-0 mt-0.5 ${isSelected ? 'text-ihc-blue-500' : 'text-gray-400'}`}
+        className={`shrink-0 mt-0.5 ${isSelected ? 'text-brand-purple-500' : 'text-gray-400'}`}
         aria-label={`Route: ${routeLabel}`}
       >
         {routeIcon}

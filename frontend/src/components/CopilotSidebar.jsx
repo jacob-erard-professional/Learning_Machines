@@ -104,7 +104,7 @@ export default function CopilotSidebar({ open, onClose }) {
         aria-label="AI Copilot assistant"
       >
         {/* Header */}
-        <div className="bg-ihc-blue-500 px-4 py-3 flex items-center justify-between shrink-0">
+        <div className="bg-brand-navy-500 px-4 py-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center" aria-hidden="true">
               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -118,7 +118,7 @@ export default function CopilotSidebar({ open, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Close AI Copilot"
-            className="text-ihc-blue-200 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white rounded"
+            className="text-brand-navy-200 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white rounded"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -127,8 +127,8 @@ export default function CopilotSidebar({ open, onClose }) {
         </div>
 
         {/* Admin memory */}
-        <div className="px-4 py-2 bg-ihc-blue-50 border-b border-ihc-blue-100 shrink-0">
-          <p className="text-xs text-ihc-blue-700 italic">{ADMIN_MEMORY}</p>
+        <div className="px-4 py-2 bg-brand-periwinkle-50 border-b border-brand-periwinkle-100 shrink-0">
+          <p className="text-xs text-brand-navy-500 italic">{ADMIN_MEMORY}</p>
         </div>
 
         {/* Suggestion chips */}
@@ -138,7 +138,7 @@ export default function CopilotSidebar({ open, onClose }) {
               key={chip}
               type="button"
               onClick={() => sendMessage(chip)}
-              className="text-xs px-2.5 py-1 rounded-full bg-ihc-blue-50 text-ihc-blue-700 border border-ihc-blue-200 hover:bg-ihc-blue-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500"
+              className="text-xs px-2.5 py-1 rounded-full bg-brand-periwinkle-50 text-brand-navy-500 border border-brand-periwinkle-200 hover:bg-brand-periwinkle-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
             >
               {chip}
             </button>
@@ -154,7 +154,7 @@ export default function CopilotSidebar({ open, onClose }) {
             >
               {msg.role === 'assistant' && (
                 <div
-                  className="w-6 h-6 rounded-full bg-ihc-teal-500 flex items-center justify-center shrink-0 mr-2 mt-0.5"
+                  className="w-6 h-6 rounded-full bg-brand-purple-500 flex items-center justify-center shrink-0 mr-2 mt-0.5"
                   aria-hidden="true"
                 >
                   <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -167,7 +167,7 @@ export default function CopilotSidebar({ open, onClose }) {
                 className={[
                   'max-w-[85%] px-3 py-2 rounded-xl text-sm leading-relaxed',
                   msg.role === 'user'
-                    ? 'bg-ihc-blue-500 text-white rounded-br-none'
+                    ? 'bg-brand-navy-500 text-white rounded-br-none'
                     : 'bg-gray-100 text-gray-900 rounded-bl-none',
                 ].join(' ')}
               >
@@ -179,7 +179,7 @@ export default function CopilotSidebar({ open, onClose }) {
           {/* Typing indicator */}
           {loading && (
             <div className="flex justify-start items-center gap-2" aria-live="polite" aria-label="AI is typing">
-              <div className="w-6 h-6 rounded-full bg-ihc-teal-500 flex items-center justify-center shrink-0" aria-hidden="true">
+              <div className="w-6 h-6 rounded-full bg-brand-purple-500 flex items-center justify-center shrink-0" aria-hidden="true">
                 <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                 </svg>
@@ -206,7 +206,7 @@ export default function CopilotSidebar({ open, onClose }) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask the AI anything..."
-              className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 max-h-24 overflow-y-auto"
+              className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 max-h-24 overflow-y-auto"
               style={{ minHeight: '38px' }}
               disabled={loading}
               aria-label="Message to AI Copilot"
@@ -216,7 +216,7 @@ export default function CopilotSidebar({ open, onClose }) {
               onClick={() => sendMessage()}
               disabled={!input.trim() || loading}
               aria-label="Send message"
-              className="shrink-0 w-9 h-9 rounded-lg bg-ihc-blue-500 text-white flex items-center justify-center hover:bg-ihc-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500"
+              className="shrink-0 w-9 h-9 rounded-lg bg-brand-purple-500 text-white flex items-center justify-center hover:bg-brand-purple-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

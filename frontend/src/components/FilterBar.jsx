@@ -135,7 +135,7 @@ export default function FilterBar() {
           placeholder="Search by name, event, or city..."
           defaultValue={filters.search}
           onChange={handleSearchChange}
-          className="block w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white transition-colors"
+          className="block w-full pl-9 pr-3 py-2 text-sm border border-brand-periwinkle-200 rounded-xl bg-gray-50 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
         />
       </div>
 
@@ -147,7 +147,7 @@ export default function FilterBar() {
             id="filter-status"
             value={filters.statusFilter}
             onChange={handleDropdownChange('statusFilter', 'status')}
-            className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white transition-colors"
+            className="block w-full text-sm border border-brand-periwinkle-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -161,7 +161,7 @@ export default function FilterBar() {
             id="filter-route"
             value={filters.routeFilter}
             onChange={handleDropdownChange('routeFilter', 'route')}
-            className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white transition-colors"
+            className="block w-full text-sm border border-brand-periwinkle-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
           >
             {ROUTE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -175,7 +175,7 @@ export default function FilterBar() {
             id="filter-priority"
             value={filters.priorityFilter}
             onChange={handleDropdownChange('priorityFilter', 'priority')}
-            className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white transition-colors"
+            className="block w-full text-sm border border-brand-periwinkle-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
           >
             {PRIORITY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -193,7 +193,7 @@ export default function FilterBar() {
             type="date"
             value={filters.dateFrom}
             onChange={handleDateChange('dateFrom', 'dateFrom')}
-            className="flex-1 min-w-0 text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white transition-colors"
+            className="flex-1 min-w-0 text-sm border border-brand-periwinkle-200 rounded-xl px-2 py-1.5 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
             aria-label="Filter from date"
           />
         </div>
@@ -204,7 +204,7 @@ export default function FilterBar() {
             type="date"
             value={filters.dateTo}
             onChange={handleDateChange('dateTo', 'dateTo')}
-            className="flex-1 min-w-0 text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white transition-colors"
+            className="flex-1 min-w-0 text-sm border border-brand-periwinkle-200 rounded-xl px-2 py-1.5 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
             aria-label="Filter to date"
           />
         </div>
@@ -212,7 +212,7 @@ export default function FilterBar() {
           <button
             type="button"
             onClick={clearFilters}
-            className="text-xs font-medium text-ihc-blue-600 hover:text-ihc-blue-800 whitespace-nowrap underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500 rounded transition-colors"
+            className="text-xs font-medium text-brand-purple-500 hover:text-brand-purple-700 whitespace-nowrap underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500 rounded transition-colors"
           >
             Clear filters
           </button>

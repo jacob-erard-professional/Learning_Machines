@@ -59,26 +59,26 @@ export default function AppShell() {
       </a>
 
       {/* Header */}
-      <header className="bg-ihc-blue-500 text-white shadow-md" role="banner">
+      <header className="bg-white text-brand-navy-500 shadow-sm border-b border-gray-100" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo + wordmark */}
             <div className="flex items-center gap-3 min-w-0">
               {/* IHC logo mark */}
               <div
-                className="flex-shrink-0 w-9 h-9 rounded-lg bg-white flex items-center justify-center"
+                className="flex-shrink-0 w-9 h-9 rounded-lg bg-brand-periwinkle-50 border border-brand-periwinkle-200 flex items-center justify-center"
                 aria-hidden="true"
               >
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-                  <rect x="1" y="8" width="20" height="6" rx="3" fill="#0066cc" />
-                  <rect x="8" y="1" width="6" height="20" rx="3" fill="#0066cc" />
+                  <rect x="1" y="8" width="20" height="6" rx="3" fill="#6B2FD9" />
+                  <rect x="8" y="1" width="6" height="20" rx="3" fill="#6B2FD9" />
                 </svg>
               </div>
               <div className="min-w-0">
-                <div className="font-semibold text-base leading-tight tracking-tight truncate">
+                <div className="font-semibold text-base leading-tight tracking-tight truncate text-brand-navy-500">
                   Intermountain Healthcare
                 </div>
-                <div className="text-ihc-blue-200 text-xs leading-tight truncate">
+                <div className="text-brand-navy-400 text-xs leading-tight truncate">
                   Community Health Request System
                 </div>
               </div>
@@ -97,10 +97,10 @@ export default function AppShell() {
                   className={({ isActive }) =>
                     [
                       'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150',
-                      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
+                      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500',
                       isActive
-                        ? 'bg-ihc-blue-700 text-white'
-                        : 'text-ihc-blue-100 hover:bg-ihc-blue-600 hover:text-white',
+                        ? 'bg-brand-periwinkle-100 text-brand-purple-600 font-semibold'
+                        : 'text-brand-navy-500 hover:bg-brand-periwinkle-50 hover:text-brand-purple-600',
                     ].join(' ')
                   }
                 >
@@ -110,7 +110,7 @@ export default function AppShell() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="ml-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 text-ihc-blue-100 hover:bg-ihc-blue-600 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="ml-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 text-brand-navy-500 hover:bg-brand-periwinkle-50 hover:text-brand-purple-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
               >
                 Sign Out
               </button>
@@ -119,7 +119,7 @@ export default function AppShell() {
             {/* Mobile hamburger */}
             <button
               type="button"
-              className="md:hidden p-2 rounded-md text-ihc-blue-200 hover:text-white hover:bg-ihc-blue-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="md:hidden p-2 rounded-md text-brand-navy-400 hover:text-brand-purple-600 hover:bg-brand-periwinkle-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
               onClick={() => setMobileOpen((prev) => !prev)}
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav"
@@ -147,7 +147,7 @@ export default function AppShell() {
         {mobileOpen && (
           <nav
             id="mobile-nav"
-            className="md:hidden border-t border-ihc-blue-600 bg-ihc-blue-500 px-4 pb-3 pt-2"
+            className="md:hidden border-t border-gray-100 bg-white px-4 pb-3 pt-2"
             aria-label="Mobile navigation"
           >
             {navItems.map((item) => (
@@ -159,10 +159,10 @@ export default function AppShell() {
                 className={({ isActive }) =>
                   [
                     'block px-3 py-2 rounded-md text-sm font-medium mb-1 transition-colors',
-                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white',
+                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500',
                     isActive
-                      ? 'bg-ihc-blue-700 text-white'
-                      : 'text-ihc-blue-100 hover:bg-ihc-blue-600 hover:text-white',
+                      ? 'bg-brand-periwinkle-100 text-brand-purple-600 font-semibold'
+                      : 'text-brand-navy-500 hover:bg-brand-periwinkle-50 hover:text-brand-purple-600',
                   ].join(' ')
                 }
               >
@@ -172,7 +172,7 @@ export default function AppShell() {
             <button
               type="button"
               onClick={handleLogout}
-              className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium mt-1 transition-colors text-ihc-blue-100 hover:bg-ihc-blue-600 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium mt-1 transition-colors text-brand-navy-500 hover:bg-brand-periwinkle-50 hover:text-brand-purple-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
             >
               Sign Out
             </button>

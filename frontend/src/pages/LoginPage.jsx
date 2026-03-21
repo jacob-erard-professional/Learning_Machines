@@ -17,7 +17,7 @@ function inputClasses(hasError) {
   return [
     'block w-full rounded-lg border px-3 py-2 text-sm text-gray-900',
     'bg-white placeholder:text-gray-400',
-    'focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-ihc-blue-500 focus:border-ihc-blue-500',
+    'focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-brand-purple-500 focus:border-brand-purple-500',
     'transition-colors duration-100',
     hasError
       ? 'border-red-400 focus:border-red-500 focus:ring-red-500 bg-red-50'
@@ -103,24 +103,24 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* IHC header bar — matches AppShell header, non-nav version */}
-      <header className="bg-ihc-blue-500 text-white shadow-md" role="banner">
+      {/* Header bar — matches AppShell header, non-nav version */}
+      <header className="bg-white text-brand-navy-500 shadow-sm border-b border-gray-100" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16 gap-3">
             <div
-              className="flex-shrink-0 w-9 h-9 rounded-lg bg-white flex items-center justify-center"
+              className="flex-shrink-0 w-9 h-9 rounded-lg bg-brand-periwinkle-50 border border-brand-periwinkle-200 flex items-center justify-center"
               aria-hidden="true"
             >
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-                <rect x="1" y="8" width="20" height="6" rx="3" fill="#0066cc" />
-                <rect x="8" y="1" width="6" height="20" rx="3" fill="#0066cc" />
+                <rect x="1" y="8" width="20" height="6" rx="3" fill="#6B2FD9" />
+                <rect x="8" y="1" width="6" height="20" rx="3" fill="#6B2FD9" />
               </svg>
             </div>
             <div>
-              <div className="font-semibold text-base leading-tight tracking-tight">
+              <div className="font-semibold text-base leading-tight tracking-tight text-brand-navy-500">
                 Intermountain Healthcare
               </div>
-              <div className="text-ihc-blue-200 text-xs leading-tight">
+              <div className="text-brand-navy-400 text-xs leading-tight">
                 Community Health Request System
               </div>
             </div>
@@ -133,7 +133,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Hero */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-brand-navy-500 tracking-tight mb-2">
               Welcome to Community Health
             </h1>
             <p className="text-sm text-gray-500 leading-relaxed">
@@ -145,10 +145,10 @@ export default function LoginPage() {
           <Card className="p-6 mb-4">
             <div className="flex items-start gap-4">
               <div
-                className="flex-shrink-0 w-10 h-10 rounded-xl bg-ihc-teal-50 border border-ihc-teal-100 flex items-center justify-center"
+                className="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-salmon-50 border border-brand-salmon-100 flex items-center justify-center"
                 aria-hidden="true"
               >
-                <svg className="w-5 h-5 text-ihc-teal-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-brand-purple-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
@@ -180,10 +180,10 @@ export default function LoginPage() {
           <Card className="p-6">
             <div className="flex items-center gap-3 mb-5">
               <div
-                className="flex-shrink-0 w-10 h-10 rounded-xl bg-ihc-blue-50 border border-ihc-blue-100 flex items-center justify-center"
+                className="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-periwinkle-100 border border-brand-periwinkle-200 flex items-center justify-center"
                 aria-hidden="true"
               >
-                <svg className="w-5 h-5 text-ihc-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-brand-navy-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>

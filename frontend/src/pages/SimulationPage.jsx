@@ -87,7 +87,7 @@ export default function SimulationPage() {
       <div>
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-2xl font-bold text-gray-900">What-If Analysis</h1>
-          <span className="text-xs bg-ihc-blue-100 text-ihc-blue-700 px-2.5 py-0.5 rounded-full border border-ihc-blue-200 font-medium">
+          <span className="text-xs bg-brand-periwinkle-100 text-brand-navy-500 px-2.5 py-0.5 rounded-full border border-brand-periwinkle-200 font-medium">
             Digital Twin
           </span>
         </div>
@@ -108,7 +108,7 @@ export default function SimulationPage() {
           onChange={(e) => setScenario(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="e.g. What if I had 3 more staff? What if demand doubles in rural Utah?"
-          className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 bg-gray-50 focus:bg-white transition-colors"
+          className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 bg-gray-50 focus:bg-white transition-colors"
           disabled={loading}
           aria-label="Simulation scenario input"
         />
@@ -120,7 +120,7 @@ export default function SimulationPage() {
               key={chip}
               type="button"
               onClick={() => setScenario(chip)}
-              className="text-xs px-3 py-1.5 rounded-full border border-ihc-blue-200 bg-ihc-blue-50 text-ihc-blue-700 hover:bg-ihc-blue-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500"
+              className="text-xs px-3 py-1.5 rounded-full border border-brand-periwinkle-200 bg-brand-periwinkle-50 text-brand-navy-500 hover:bg-brand-periwinkle-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
             >
               {chip}
             </button>
@@ -161,9 +161,9 @@ export default function SimulationPage() {
       {result && !loading && (
         <div className="space-y-4" aria-live="polite">
           {/* Scenario label */}
-          <div className="bg-ihc-blue-50 border border-ihc-blue-100 rounded-xl px-4 py-3">
-            <p className="text-xs font-medium text-ihc-blue-600 uppercase tracking-wider mb-1">Scenario</p>
-            <p className="text-sm font-semibold text-ihc-blue-900">"{result.scenario}"</p>
+          <div className="bg-brand-periwinkle-50 border border-brand-periwinkle-100 rounded-xl px-4 py-3">
+            <p className="text-xs font-medium text-brand-purple-500 uppercase tracking-wider mb-1">Scenario</p>
+            <p className="text-sm font-semibold text-brand-navy-500">"{result.scenario}"</p>
           </div>
 
           {/* Summary */}
@@ -197,12 +197,12 @@ export default function SimulationPage() {
                         <p className="text-xs text-gray-400">Before</p>
                         <p className="text-xl font-bold text-gray-700">{beforeVal}</p>
                       </div>
-                      <div className={`flex items-center text-lg font-bold ${isGood ? 'text-ihc-teal-600' : isBad ? 'text-ihc-amber-600' : 'text-gray-500'}`}>
+                      <div className={`flex items-center text-lg font-bold ${isGood ? 'text-brand-purple-600' : isBad ? 'text-brand-yellow-600' : 'text-gray-500'}`}>
                         →
                       </div>
                       <div>
                         <p className="text-xs text-gray-400">After</p>
-                        <p className={`text-xl font-bold ${isGood ? 'text-ihc-teal-600' : isBad ? 'text-ihc-amber-600' : 'text-gray-700'}`}>
+                        <p className={`text-xl font-bold ${isGood ? 'text-brand-purple-600' : isBad ? 'text-brand-yellow-600' : 'text-gray-700'}`}>
                           {afterVal}
                         </p>
                       </div>
@@ -228,10 +228,10 @@ export default function SimulationPage() {
                 <tbody className="divide-y divide-gray-50">
                   {result.affectedZips.map((z) => (
                     <tr key={z.zip}>
-                      <td className="py-2 font-mono text-ihc-blue-600 font-semibold">{z.zip}</td>
+                      <td className="py-2 font-mono text-brand-purple-500 font-semibold">{z.zip}</td>
                       <td className="py-2 text-gray-700">{z.city}</td>
                       <td className="py-2">
-                        <span className="text-ihc-teal-600 font-semibold">+{z.additionalCapacity}</span>
+                        <span className="text-brand-purple-600 font-semibold">+{z.additionalCapacity}</span>
                       </td>
                     </tr>
                   ))}
@@ -247,7 +247,7 @@ export default function SimulationPage() {
               <ul className="space-y-2">
                 {result.tradeoffs.map((tradeoff, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-ihc-amber-500 shrink-0 mt-0.5" aria-hidden="true">⚠</span>
+                    <span className="text-brand-yellow-500 shrink-0 mt-0.5" aria-hidden="true">⚠</span>
                     {tradeoff}
                   </li>
                 ))}

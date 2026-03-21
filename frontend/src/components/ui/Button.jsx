@@ -1,24 +1,9 @@
 /**
- * @fileoverview IHC-branded Button component.
+ * @fileoverview Brand-styled Button component.
  * Supports primary, secondary, and danger variants with size options.
  * Fully accessible: visible focus ring, aria-busy on loading, aria-disabled.
  */
 
-/**
- * Polished IHC-branded button with variant, size, loading, and disabled states.
- *
- * @param {object} props
- * @param {'primary'|'secondary'|'danger'} [props.variant='primary'] - Visual variant
- * @param {'sm'|'md'|'lg'} [props.size='md'] - Size variant
- * @param {boolean} [props.disabled=false] - Prevents interaction
- * @param {boolean} [props.loading=false] - Shows spinner and disables interaction
- * @param {() => void} [props.onClick] - Click handler
- * @param {React.ReactNode} props.children - Button label or content
- * @param {'button'|'submit'|'reset'} [props.type='button'] - HTML button type
- * @param {string} [props.ariaLabel] - Required when children is icon-only
- * @param {string} [props.className] - Additional CSS classes
- * @returns {JSX.Element}
- */
 export default function Button({
   variant = 'primary',
   size = 'md',
@@ -34,21 +19,21 @@ export default function Button({
 
   const baseClasses = [
     'inline-flex items-center justify-center gap-2',
-    'font-medium rounded-lg',
+    'font-semibold rounded-full',
     'transition-all duration-150 ease-in-out',
-    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500',
+    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500',
     'select-none',
   ];
 
   const variantClasses = {
     primary: [
-      'bg-ihc-blue-500 text-white',
-      'hover:bg-ihc-blue-600 active:bg-ihc-blue-700',
+      'bg-brand-navy-500 text-white',
+      'hover:bg-brand-navy-600 active:bg-brand-navy-700',
       isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
     ],
     secondary: [
-      'bg-white text-ihc-blue-500 border-2 border-ihc-blue-500',
-      'hover:bg-ihc-blue-50 active:bg-ihc-blue-100',
+      'bg-white text-brand-navy-500 border-2 border-brand-navy-500',
+      'hover:bg-brand-periwinkle-50 active:bg-brand-periwinkle-100',
       isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
     ],
     danger: [
@@ -59,9 +44,9 @@ export default function Button({
   };
 
   const sizeClasses = {
-    sm: 'text-sm px-3 py-1.5',
-    md: 'text-sm px-4 py-2',
-    lg: 'text-base px-6 py-3',
+    sm: 'text-sm px-4 py-1.5',
+    md: 'text-sm px-5 py-2.5',
+    lg: 'text-base px-7 py-3',
   };
 
   const allClasses = [

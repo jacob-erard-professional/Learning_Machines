@@ -4,7 +4,7 @@
  */
 
 /**
- * Animated loading spinner with IHC-branded colors.
+ * Animated loading spinner with brand colors.
  *
  * @param {object} props
  * @param {'sm'|'md'|'lg'} [props.size='md'] - Spinner size
@@ -23,8 +23,8 @@ export default function LoadingSpinner({ size = 'md', label = 'Loading', classNa
   const spinnerClasses = [
     sizeMap[size] || sizeMap.md,
     'rounded-full',
-    'border-ihc-blue-200',
-    'border-t-ihc-blue-500',
+    'border-brand-periwinkle-200',
+    'border-t-brand-purple-500',
     'animate-spin',
   ].join(' ');
 

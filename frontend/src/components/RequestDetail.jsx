@@ -175,7 +175,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
         <button
           type="button"
           onClick={onClose}
-          className="mt-3 text-sm text-ihc-blue-600 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500 rounded"
+          className="mt-3 text-sm text-brand-purple-500 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500 rounded"
         >
           Close
         </button>
@@ -192,7 +192,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
       <div className="px-5 py-4 border-b border-gray-100 flex items-start gap-3 shrink-0">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-sm font-semibold text-ihc-blue-600">{request.id}</span>
+            <span className="font-mono text-sm font-semibold text-brand-purple-500">{request.id}</span>
             <StatusBadge status={merged.status} size="sm" />
           </div>
           <h2 className="text-base font-semibold text-gray-900 mt-1 truncate">{request.eventName}</h2>
@@ -205,7 +205,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
           type="button"
           onClick={onClose}
           aria-label="Close request detail"
-          className="shrink-0 p-1.5 text-gray-400 hover:text-gray-600 rounded-md transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500"
+          className="shrink-0 p-1.5 text-gray-400 hover:text-gray-600 rounded-md transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -233,7 +233,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
               onClick={() => initiateAction('hold')}
               ariaLabel="Place request on hold for review"
             >
-              <span className="text-ihc-amber-600">Hold</span>
+              <span className="text-brand-yellow-600">Hold</span>
             </Button>
             <Button
               variant="secondary"
@@ -272,9 +272,9 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
               onClick={() => setActiveTab(tab)}
               className={[
                 'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors duration-150',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ihc-blue-500',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-purple-500',
                 activeTab === tab
-                  ? 'border-ihc-blue-500 text-ihc-blue-600'
+                  ? 'border-brand-purple-500 text-brand-purple-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
               ].join(' ')}
             >
@@ -325,7 +325,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                     name="fulfillmentRoute"
                     value={merged.fulfillmentRoute}
                     onChange={handleFieldChange}
-                    className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white transition-colors"
+                    className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
                     aria-label="Fulfillment route override"
                   >
                     {ROUTE_OPTIONS.map((opt) => (
@@ -340,7 +340,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                     name="status"
                     value={merged.status}
                     onChange={handleFieldChange}
-                    className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white transition-colors"
+                    className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
                     aria-label="Status override"
                   >
                     {STATUS_OPTIONS.map((opt) => (
@@ -360,7 +360,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                     rows={3}
                     value={merged.adminNotes || ''}
                     onChange={handleFieldChange}
-                    className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white resize-y transition-colors"
+                    className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white resize-y transition-colors"
                     placeholder="Add internal notes..."
                   />
                 </div>
@@ -412,12 +412,12 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                 <ol className="relative border-l-2 border-gray-100 space-y-6 ml-3">
                   {[...request.auditLog].reverse().map((entry, i) => (
                     <li key={i} className="ml-4">
-                      <span className="absolute -left-1.5 w-3 h-3 bg-ihc-blue-500 rounded-full border-2 border-white" aria-hidden="true" />
+                      <span className="absolute -left-1.5 w-3 h-3 bg-brand-purple-500 rounded-full border-2 border-white" aria-hidden="true" />
                       <time className="text-xs text-gray-400">
                         {new Date(entry.timestamp).toLocaleString()}
                       </time>
                       <p className="text-sm font-medium text-gray-900 mt-0.5">
-                        <span className="font-mono text-ihc-blue-600">{entry.field}</span>:{' '}
+                        <span className="font-mono text-brand-purple-600">{entry.field}</span>:{' '}
                         <span className="line-through text-gray-400">{String(entry.oldValue)}</span>
                         {' → '}
                         <span className="text-gray-900">{String(entry.newValue)}</span>
@@ -452,7 +452,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
             </h3>
 
             {request.aiConfidence === 'high' && (
-              <div className="bg-ihc-amber-100 border border-ihc-amber-300 rounded-lg px-3 py-2 text-sm text-ihc-amber-800" role="alert">
+              <div className="bg-brand-yellow-100 border border-brand-yellow-300 rounded-lg px-3 py-2 text-sm text-brand-yellow-700" role="alert">
                 AI classified this with <strong>high confidence</strong>. Are you sure you want to override?
               </div>
             )}
@@ -466,7 +466,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                 rows={3}
                 value={actionNote}
                 onChange={(e) => setActionNote(e.target.value)}
-                className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 resize-none"
+                className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 resize-none"
                 placeholder="Add a note explaining this decision..."
                 aria-required={confirmModal.action !== 'approve'}
               />
@@ -524,7 +524,7 @@ function EditableField({ label, name, value, onChange, type = 'text' }) {
         type={type}
         value={value || ''}
         onChange={onChange}
-        className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 focus:bg-white transition-colors"
+        className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
       />
     </div>
   );

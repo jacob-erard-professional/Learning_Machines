@@ -23,11 +23,11 @@ export default function SubmitPage() {
         <>
           {/* Hero */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 bg-ihc-blue-50 border border-ihc-blue-200 rounded-full px-4 py-1.5 mb-4">
-              <span className="w-2 h-2 rounded-full bg-ihc-teal-500 animate-pulse" aria-hidden="true" />
-              <span className="text-xs font-medium text-ihc-blue-700">Intermountain Community Health Program</span>
+            <div className="inline-flex items-center gap-2 bg-brand-periwinkle-50 border border-brand-periwinkle-200 rounded-full px-4 py-1.5 mb-4">
+              <span className="w-2 h-2 rounded-full bg-brand-purple-500 animate-pulse" aria-hidden="true" />
+              <span className="text-xs font-medium text-brand-navy-500">Intermountain Community Health Program</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-3">
+            <h1 className="text-3xl sm:text-4xl font-bold text-brand-navy-500 tracking-tight mb-3">
               Request Community Health Support
             </h1>
             <p className="text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
@@ -40,8 +40,8 @@ export default function SubmitPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
             {/* Form card */}
             <Card hover className="p-6 flex flex-col">
-              <div className="w-12 h-12 rounded-xl bg-ihc-blue-50 border border-ihc-blue-100 flex items-center justify-center mb-4" aria-hidden="true">
-                <svg className="w-6 h-6 text-ihc-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <div className="w-12 h-12 rounded-xl bg-brand-periwinkle-100 border border-brand-periwinkle-200 flex items-center justify-center mb-4" aria-hidden="true">
+                <svg className="w-6 h-6 text-brand-navy-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
@@ -52,7 +52,7 @@ export default function SubmitPage() {
               </p>
               <div className="flex flex-wrap gap-2 mb-5">
                 {['Step-by-step', 'AI routing', 'Instant confirmation'].map((tag) => (
-                  <span key={tag} className="text-xs bg-ihc-blue-50 text-ihc-blue-700 px-2.5 py-1 rounded-full border border-ihc-blue-100">
+                  <span key={tag} className="text-xs bg-brand-periwinkle-50 text-brand-navy-500 px-2.5 py-1 rounded-full border border-brand-periwinkle-100">
                     {tag}
                   </span>
                 ))}
@@ -60,7 +60,7 @@ export default function SubmitPage() {
               <button
                 type="button"
                 onClick={() => setShowForm(true)}
-                className="w-full bg-ihc-blue-500 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-ihc-blue-600 active:bg-ihc-blue-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500"
+                className="w-full bg-brand-navy-500 text-white rounded-full py-2.5 text-sm font-medium hover:bg-brand-navy-600 active:bg-brand-navy-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
               >
                 Start Form
               </button>
@@ -68,8 +68,8 @@ export default function SubmitPage() {
 
             {/* Chat card */}
             <Card hover className="p-6 flex flex-col">
-              <div className="w-12 h-12 rounded-xl bg-ihc-teal-50 border border-ihc-teal-100 flex items-center justify-center mb-4" aria-hidden="true">
-                <svg className="w-6 h-6 text-ihc-teal-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <div className="w-12 h-12 rounded-xl bg-brand-salmon-50 border border-brand-salmon-100 flex items-center justify-center mb-4" aria-hidden="true">
+                <svg className="w-6 h-6 text-brand-purple-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
@@ -80,14 +80,14 @@ export default function SubmitPage() {
               </p>
               <div className="flex flex-wrap gap-2 mb-5">
                 {['Conversational', 'Natural language', 'AI-powered'].map((tag) => (
-                  <span key={tag} className="text-xs bg-ihc-teal-50 text-ihc-teal-700 px-2.5 py-1 rounded-full border border-ihc-teal-100">
+                  <span key={tag} className="text-xs bg-brand-salmon-50 text-brand-purple-600 px-2.5 py-1 rounded-full border border-brand-salmon-100">
                     {tag}
                   </span>
                 ))}
               </div>
               <Link
                 to="/chat"
-                className="block w-full text-center bg-ihc-teal-500 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-ihc-teal-600 active:bg-ihc-teal-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-teal-500"
+                className="block w-full text-center bg-brand-purple-500 text-white rounded-full py-2.5 text-sm font-medium hover:bg-brand-purple-600 active:bg-brand-purple-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
               >
                 Open Chat
               </Link>
@@ -117,7 +117,7 @@ export default function SubmitPage() {
           <button
             type="button"
             onClick={() => setShowForm(false)}
-            className="flex items-center gap-1.5 text-sm text-ihc-blue-600 hover:text-ihc-blue-800 mb-6 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500 rounded"
+            className="flex items-center gap-1.5 text-sm text-brand-purple-500 hover:text-brand-purple-700 mb-6 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500 rounded"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -126,7 +126,7 @@ export default function SubmitPage() {
           </button>
 
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Submit a Community Health Request</h1>
+            <h1 className="text-2xl font-bold text-brand-navy-500">Submit a Community Health Request</h1>
             <p className="text-gray-500 text-sm mt-1">
               Fields marked with <span className="text-red-500" aria-hidden="true">*</span> are required.
             </p>

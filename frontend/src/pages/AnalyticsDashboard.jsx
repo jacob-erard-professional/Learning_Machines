@@ -15,16 +15,16 @@ import LoadingSpinner from '../components/ui/LoadingSpinner.jsx';
 import StatusBadge from '../components/ui/StatusBadge.jsx';
 
 const COLORS = {
-  staff_deployment: '#0066cc',
-  mail: '#00897b',
-  pickup: '#f59e0b',
+  staff_deployment: '#1A1A4E',
+  mail: '#6B2FD9',
+  pickup: '#F5C518',
 };
 
 const STATUS_COLORS = {
-  pending: '#0066cc',
-  needs_review: '#f59e0b',
-  approved: '#2e7d32',
-  fulfilled: '#00897b',
+  pending: '#A8B4F8',
+  needs_review: '#F5C518',
+  approved: '#22c55e',
+  fulfilled: '#6B2FD9',
   rejected: '#9ca3af',
 };
 
@@ -122,9 +122,9 @@ export default function AnalyticsDashboard() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { key: 'total', label: 'Total Requests', value: total, color: 'text-gray-900', bg: 'bg-gray-50' },
-              { key: 'pending', label: 'Pending Review', value: pending, color: 'text-ihc-blue-600', bg: 'bg-ihc-blue-50' },
-              { key: 'approved', label: 'Approved', value: approved, color: 'text-ihc-green-500', bg: 'bg-green-50' },
-              { key: 'fulfilled', label: 'Fulfilled', value: fulfilled, color: 'text-ihc-teal-600', bg: 'bg-ihc-teal-50' },
+              { key: 'pending', label: 'Pending Review', value: pending, color: 'text-brand-purple-600', bg: 'bg-brand-periwinkle-50' },
+              { key: 'approved', label: 'Approved', value: approved, color: 'text-green-500', bg: 'bg-green-50' },
+              { key: 'fulfilled', label: 'Fulfilled', value: fulfilled, color: 'text-brand-purple-600', bg: 'bg-brand-periwinkle-100' },
             ].map((metric) => (
               <Card key={metric.key} className="p-4">
                 <div className={`w-9 h-9 rounded-lg ${metric.bg} flex items-center justify-center mb-3 ${metric.color}`} aria-hidden="true">
@@ -205,7 +205,7 @@ export default function AnalyticsDashboard() {
                   <XAxis dataKey="route" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#0066cc" radius={[4, 4, 0, 0]} name="Requests" />
+                  <Bar dataKey="count" fill="#6B2FD9" radius={[4, 4, 0, 0]} name="Requests" />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -250,7 +250,7 @@ export default function AnalyticsDashboard() {
           <Card className="p-5">
             <div className="flex items-center gap-2 mb-3">
               <h2 className="text-sm font-semibold text-gray-700">Predictive Forecast</h2>
-              <span className="text-xs bg-ihc-amber-100 text-ihc-amber-700 px-2 py-0.5 rounded-full border border-ihc-amber-200 font-medium">
+              <span className="text-xs bg-brand-yellow-100 text-brand-yellow-700 px-2 py-0.5 rounded-full border border-brand-yellow-300 font-medium">
                 AI Forecast – experimental
               </span>
             </div>
@@ -258,15 +258,15 @@ export default function AnalyticsDashboard() {
               <p>Based on historical trends, the model predicts:</p>
               <ul className="space-y-1 text-sm">
                 <li className="flex items-start gap-2">
-                  <span className="text-ihc-teal-500 mt-0.5" aria-hidden="true">↑</span>
+                  <span className="text-brand-purple-500 mt-0.5" aria-hidden="true">↑</span>
                   Staff deployment requests expected to increase 15% over the next 4 weeks (spring event season).
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-ihc-amber-500 mt-0.5" aria-hidden="true">⚠</span>
+                  <span className="text-brand-yellow-500 mt-0.5" aria-hidden="true">⚠</span>
                   Moab (84532) and similar rural ZIPs show sustained underservice — consider proactive outreach.
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-ihc-blue-500 mt-0.5" aria-hidden="true">→</span>
+                  <span className="text-brand-periwinkle-400 mt-0.5" aria-hidden="true">→</span>
                   Mailed materials demand stable; current inventory levels appear adequate.
                 </li>
               </ul>

@@ -10,15 +10,15 @@ import { mockGeoData } from '../data/mockRequests.js';
 import LoadingSpinner from '../components/ui/LoadingSpinner.jsx';
 import Card from '../components/ui/Card.jsx';
 
-// IHC brand hex values used for heatmap tiles.
+// Brand hex values used for heatmap tiles.
 // Inline styles bypass Tailwind's purge — guaranteed to render correctly.
 const COLORS = {
   none:        '#f3f4f6', // gray-100
-  low:         '#ccfbf1', // teal-100
-  medium:      '#5eead4', // teal-300
-  high:        '#00897b', // ihc-teal-500
-  highDemand:  '#f59e0b', // ihc-amber-500
-  underserved: '#3b82f6', // blue-500 (ihc-blue-400 equiv — not in config)
+  low:         '#eaebfc', // brand-periwinkle-100
+  medium:      '#c0c5f7', // brand-periwinkle-300
+  high:        '#6B2FD9', // brand-purple-500
+  highDemand:  '#F5C518', // brand-yellow-500
+  underserved: '#A8B4F8', // brand-periwinkle-400
 };
 
 const LEGEND = [
@@ -32,16 +32,16 @@ const LEGEND = [
 
 /**
  * Returns inline bg + text color for a heatmap tile.
- * Flags take priority; otherwise absolute count thresholds drive the teal scale
+ * Flags take priority; otherwise absolute count thresholds drive the scale
  * so a ZIP with 1 request always looks "low" regardless of what other ZIPs have.
  */
 function tileStyle(row) {
-  if (row.flag === 'high_demand') return { bg: COLORS.highDemand, color: '#fff' };
-  if (row.flag === 'underserved') return { bg: COLORS.underserved, color: '#fff' };
+  if (row.flag === 'high_demand') return { bg: COLORS.highDemand, color: '#1A1A4E' };
+  if (row.flag === 'underserved') return { bg: COLORS.underserved, color: '#1A1A4E' };
   const n = row.totalRequestCount ?? 0;
   if (n === 0)  return { bg: COLORS.none,   color: '#6b7280' };
-  if (n <= 2)   return { bg: COLORS.low,    color: '#134e4a' };
-  if (n <= 5)   return { bg: COLORS.medium, color: '#134e4a' };
+  if (n <= 2)   return { bg: COLORS.low,    color: '#1A1A4E' };
+  if (n <= 5)   return { bg: COLORS.medium, color: '#1A1A4E' };
   return               { bg: COLORS.high,   color: '#fff' };
 }
 
@@ -119,9 +119,9 @@ export default function GeoEquityView() {
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <SummaryCard label="Total ZIP Codes" value={summary.length} color="text-gray-900" />
-            <SummaryCard label="In Service Area" value={coverage.inServiceArea ?? 0} color="text-ihc-blue-600" />
-            <SummaryCard label="High Demand" value={highDemandCount} color="text-ihc-amber-600" indicator="high_demand" />
-            <SummaryCard label="Underserved" value={underservedCount} color="text-ihc-blue-500" indicator="underserved" />
+            <SummaryCard label="In Service Area" value={coverage.inServiceArea ?? 0} color="text-brand-purple-600" />
+            <SummaryCard label="High Demand" value={highDemandCount} color="text-brand-yellow-600" indicator="high_demand" />
+            <SummaryCard label="Underserved" value={underservedCount} color="text-brand-periwinkle-400" indicator="underserved" />
           </div>
 
           {/* Sortable table */}
@@ -142,7 +142,7 @@ export default function GeoEquityView() {
                       <th
                         key={col.key}
                         scope="col"
-                        className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-ihc-blue-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-ihc-blue-500"
+                        className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-brand-purple-500 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-purple-500"
                         onClick={() => handleSort(col.key)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSort(col.key)}
                         tabIndex={0}
@@ -180,8 +180,8 @@ export default function GeoEquityView() {
                         key={row.zip}
                         className={[
                           'transition-colors',
-                          isHighDemand ? 'border-l-4 border-l-ihc-amber-500 bg-ihc-amber-50/40 hover:bg-ihc-amber-50' : '',
-                          isUnderserved ? 'border-l-4 border-l-ihc-blue-400 bg-ihc-blue-50/30 hover:bg-ihc-blue-50' : '',
+                          isHighDemand ? 'border-l-4 border-l-brand-yellow-500 bg-brand-yellow-50/40 hover:bg-brand-yellow-50' : '',
+                          isUnderserved ? 'border-l-4 border-l-brand-periwinkle-400 bg-brand-periwinkle-50/30 hover:bg-brand-periwinkle-50' : '',
                           !isHighDemand && !isUnderserved ? 'border-l-4 border-l-transparent hover:bg-gray-50' : '',
                         ].join(' ')}
                       >
@@ -192,7 +192,7 @@ export default function GeoEquityView() {
                           <span
                             className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
                               row.isInServiceArea
-                                ? 'bg-ihc-teal-100 text-ihc-teal-700'
+                                ? 'bg-brand-periwinkle-100 text-brand-purple-600'
                                 : 'bg-gray-100 text-gray-500'
                             }`}
                           >
@@ -203,7 +203,7 @@ export default function GeoEquityView() {
                           <div className="flex items-center gap-2">
                             <div className="w-16 bg-gray-100 rounded-full h-1.5" aria-hidden="true">
                               <div
-                                className="h-1.5 rounded-full bg-ihc-blue-500"
+                                className="h-1.5 rounded-full bg-brand-purple-500"
                                 style={{ width: `${(row.requestCount30d / maxCount) * 100}%` }}
                               />
                             </div>
@@ -215,19 +215,19 @@ export default function GeoEquityView() {
                         <td className="px-4 py-3">
                           {isHighDemand && (
                             <span
-                              className="inline-flex items-center gap-1 text-xs font-semibold bg-ihc-amber-100 text-ihc-amber-700 px-2.5 py-1 rounded-full border border-ihc-amber-200"
+                              className="inline-flex items-center gap-1 text-xs font-semibold bg-brand-yellow-100 text-brand-yellow-700 px-2.5 py-1 rounded-full border border-brand-yellow-300"
                               aria-label="Flag: High demand"
                             >
-                              <span className="w-1.5 h-1.5 rounded-full bg-ihc-amber-500" aria-hidden="true" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-brand-yellow-500" aria-hidden="true" />
                               HIGH DEMAND
                             </span>
                           )}
                           {isUnderserved && (
                             <span
-                              className="inline-flex items-center gap-1 text-xs font-semibold bg-ihc-blue-100 text-ihc-blue-700 px-2.5 py-1 rounded-full border border-ihc-blue-200"
+                              className="inline-flex items-center gap-1 text-xs font-semibold bg-brand-periwinkle-100 text-brand-navy-500 px-2.5 py-1 rounded-full border border-brand-periwinkle-200"
                               aria-label="Flag: Underserved"
                             >
-                              <span className="w-1.5 h-1.5 rounded-full bg-ihc-blue-500" aria-hidden="true" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-brand-periwinkle-400" aria-hidden="true" />
                               UNDERSERVED
                             </span>
                           )}
@@ -248,7 +248,7 @@ export default function GeoEquityView() {
             <h2 className="text-sm font-semibold text-gray-700 mb-3">Request Density Heatmap</h2>
             <p className="text-xs text-gray-500 mb-4">
               Each block represents a ZIP code. Color indicates total request volume.
-              Amber = high demand · Blue = underserved · Teal scale = volume.
+              Amber = high demand · Periwinkle = underserved · Purple scale = volume.
             </p>
             <div className="flex flex-wrap gap-2" role="img" aria-label="ZIP code demand heatmap">
               {sortedData.map((row) => {
@@ -295,10 +295,10 @@ function SummaryCard({ label, value, color, indicator }) {
       <div className="flex items-start justify-between">
         <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
         {indicator === 'high_demand' && (
-          <span className="w-2 h-2 rounded-full bg-ihc-amber-500 mt-0.5" aria-hidden="true" />
+          <span className="w-2 h-2 rounded-full bg-brand-yellow-500 mt-0.5" aria-hidden="true" />
         )}
         {indicator === 'underserved' && (
-          <span className="w-2 h-2 rounded-full bg-ihc-blue-400 mt-0.5" aria-hidden="true" />
+          <span className="w-2 h-2 rounded-full bg-brand-periwinkle-400 mt-0.5" aria-hidden="true" />
         )}
       </div>
       <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>

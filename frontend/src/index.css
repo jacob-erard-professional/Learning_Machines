@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Nunito:wght@700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,13 +6,17 @@
 
 @layer base {
   :root {
-    --ihc-blue: #0066cc;
-    --ihc-teal: #00897b;
-    --ihc-amber: #f59e0b;
+    --brand-navy:       #1A1A4E;
+    --brand-purple:     #6B2FD9;
+    --brand-periwinkle: #A8B4F8;
+    --brand-pink:       #E91E8C;
+    --brand-yellow:     #F5C518;
+    --brand-salmon:     #F4A07A;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    @apply bg-gray-50 font-sans antialiased;
+    color: var(--brand-navy);
     margin: 0;
   }
 
@@ -20,9 +24,17 @@
     min-height: 100vh;
   }
 
-  /* Focus ring — visible for keyboard navigation (Principle I) */
+  /* Headings use Nunito automatically */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    color: #1A1A4E;
+  }
+
+  /* Focus ring — visible for keyboard navigation */
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-ihc-blue-500;
+    @apply outline-2 outline-offset-2;
+    outline-color: var(--brand-purple);
   }
 }
 
@@ -30,7 +42,19 @@
   /* Skip-to-content link for screen readers */
   .skip-link {
     @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50
-           focus:bg-ihc-blue-500 focus:text-white focus:px-4 focus:py-2 focus:rounded-md
+           focus:text-white focus:px-4 focus:py-2 focus:rounded-full
            focus:text-sm focus:font-medium;
+  }
+  .skip-link:focus {
+    background-color: var(--brand-purple);
+  }
+
+  /* Blob decorators — organic shape backgrounds */
+  .blob {
+    position: absolute;
+    border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
   }
 }

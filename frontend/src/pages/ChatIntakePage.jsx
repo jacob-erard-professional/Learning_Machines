@@ -99,7 +99,7 @@ export default function ChatIntakePage() {
       {/* Header */}
       <div className="mb-4 shrink-0">
         <div className="flex items-center gap-2 mb-1">
-          <div className="w-8 h-8 rounded-full bg-ihc-teal-500 flex items-center justify-center" aria-hidden="true">
+          <div className="w-8 h-8 rounded-full bg-brand-purple-500 flex items-center justify-center" aria-hidden="true">
             <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
               <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
@@ -109,8 +109,8 @@ export default function ChatIntakePage() {
             <h1 className="text-base font-semibold text-gray-900">Chat Intake</h1>
             <p className="text-xs text-gray-500">AI Assistant · Community Health Requests</p>
           </div>
-          <div className="ml-auto flex items-center gap-1.5 text-xs text-ihc-teal-600 bg-ihc-teal-50 px-2.5 py-1 rounded-full border border-ihc-teal-100">
-            <span className="w-1.5 h-1.5 bg-ihc-teal-500 rounded-full animate-pulse" aria-hidden="true" />
+          <div className="ml-auto flex items-center gap-1.5 text-xs text-brand-purple-600 bg-brand-periwinkle-50 px-2.5 py-1 rounded-full border border-brand-periwinkle-200">
+            <span className="w-1.5 h-1.5 bg-brand-purple-500 rounded-full animate-pulse" aria-hidden="true" />
             Online
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function ChatIntakePage() {
             {/* AI avatar */}
             {msg.role === 'assistant' && (
               <div
-                className="w-7 h-7 rounded-full bg-ihc-teal-500 flex items-center justify-center shrink-0"
+                className="w-7 h-7 rounded-full bg-brand-purple-500 flex items-center justify-center shrink-0"
                 aria-hidden="true"
               >
                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -139,7 +139,7 @@ export default function ChatIntakePage() {
                 className={[
                   'px-4 py-2.5 rounded-2xl text-sm leading-relaxed',
                   msg.role === 'user'
-                    ? 'bg-ihc-blue-500 text-white rounded-br-none'
+                    ? 'bg-brand-navy-500 text-white rounded-br-none'
                     : 'bg-white border border-gray-200 text-gray-900 rounded-bl-none shadow-card',
                 ].join(' ')}
               >
@@ -148,12 +148,12 @@ export default function ChatIntakePage() {
 
               {/* Extracted fields summary */}
               {msg.extractedFields && Object.keys(msg.extractedFields).length > 0 && (
-                <div className="bg-ihc-teal-50 border border-ihc-teal-200 rounded-xl px-3 py-2.5 text-xs text-ihc-teal-800 w-full">
-                  <p className="font-semibold mb-1.5 text-ihc-teal-700">Got it! Here's what I found:</p>
+                <div className="bg-brand-periwinkle-50 border border-brand-periwinkle-200 rounded-xl px-3 py-2.5 text-xs text-brand-navy-500 w-full">
+                  <p className="font-semibold mb-1.5 text-brand-purple-600">Got it! Here's what I found:</p>
                   <ul className="space-y-0.5">
                     {Object.entries(msg.extractedFields).map(([key, value]) => (
                       <li key={key} className="flex gap-1.5">
-                        <span className="font-medium text-ihc-teal-600 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                        <span className="font-medium text-brand-purple-500 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</span>
                         <span>{String(value)}</span>
                       </li>
                     ))}
@@ -166,7 +166,7 @@ export default function ChatIntakePage() {
                 <button
                   type="button"
                   onClick={handleReviewSubmit}
-                  className="bg-ihc-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-ihc-blue-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500"
+                  className="bg-brand-navy-500 text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-brand-navy-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
                 >
                   Review & Submit Request
                 </button>
@@ -178,7 +178,7 @@ export default function ChatIntakePage() {
         {/* Typing indicator */}
         {loading && (
           <div className="flex items-end gap-2 justify-start" aria-label="AI is typing" aria-live="polite">
-            <div className="w-7 h-7 rounded-full bg-ihc-teal-500 flex items-center justify-center shrink-0" aria-hidden="true">
+            <div className="w-7 h-7 rounded-full bg-brand-purple-500 flex items-center justify-center shrink-0" aria-hidden="true">
               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
               </svg>
@@ -196,12 +196,12 @@ export default function ChatIntakePage() {
       {/* Input */}
       <div className="shrink-0 pt-3 border-t border-gray-100">
         {isReady && (
-          <div className="mb-2 p-2.5 bg-ihc-teal-50 border border-ihc-teal-200 rounded-lg flex items-center justify-between">
-            <p className="text-xs text-ihc-teal-700 font-medium">Ready to submit! Review your request details.</p>
+          <div className="mb-2 p-2.5 bg-brand-periwinkle-50 border border-brand-periwinkle-200 rounded-lg flex items-center justify-between">
+            <p className="text-xs text-brand-purple-600 font-medium">Ready to submit! Review your request details.</p>
             <button
               type="button"
               onClick={handleReviewSubmit}
-              className="text-xs font-semibold text-ihc-blue-600 hover:text-ihc-blue-800 underline ml-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500 rounded"
+              className="text-xs font-semibold text-brand-purple-500 hover:text-brand-purple-700 underline ml-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500 rounded"
             >
               Go to form
             </button>
@@ -218,7 +218,7 @@ export default function ChatIntakePage() {
             onKeyDown={handleKeyDown}
             placeholder="Tell me about your event..."
             disabled={loading}
-            className="flex-1 text-sm border border-gray-200 rounded-xl px-4 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-ihc-blue-500 focus:border-ihc-blue-500 max-h-24 overflow-y-auto bg-gray-50 focus:bg-white transition-colors disabled:opacity-50"
+            className="flex-1 text-sm border border-gray-200 rounded-xl px-4 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 max-h-24 overflow-y-auto bg-gray-50 focus:bg-white transition-colors disabled:opacity-50"
             style={{ minHeight: '42px' }}
           />
           <button
@@ -226,7 +226,7 @@ export default function ChatIntakePage() {
             onClick={sendMessage}
             disabled={!input.trim() || loading}
             aria-label="Send message"
-            className="shrink-0 w-10 h-10 rounded-xl bg-ihc-blue-500 text-white flex items-center justify-center hover:bg-ihc-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500"
+            className="shrink-0 w-10 h-10 rounded-xl bg-brand-purple-500 text-white flex items-center justify-center hover:bg-brand-purple-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

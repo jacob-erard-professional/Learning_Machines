@@ -72,7 +72,7 @@ export default function TicketQueue() {
           onClick={refreshRequests}
           disabled={loading}
           aria-label="Refresh request list"
-          className="p-1.5 text-gray-400 hover:text-ihc-blue-500 rounded-md transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500 disabled:opacity-50"
+          className="p-1.5 text-gray-400 hover:text-brand-purple-500 rounded-md transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500 disabled:opacity-50"
         >
           <svg
             className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
