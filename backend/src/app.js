@@ -37,10 +37,13 @@ import express from 'express';
 import cors from 'cors';
 
 import requestsRouter from './routes/requests.js';
+import authRouter from './routes/auth.js';
 import chatRouter from './routes/chat.js';
 import analyticsRouter from './routes/analytics.js';
 import copilotRouter from './routes/copilot.js';
 import simulateRouter from './routes/simulate.js';
+import voiceIntakeRouter from './routes/voiceIntake.js';
+import voiceCommandRouter from './routes/voiceCommand.js';
 
 const app = express();
 
@@ -70,10 +73,13 @@ app.use(express.urlencoded({ extended: false }));
 // ---------------------------------------------------------------------------
 
 app.use('/api/requests', requestsRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/copilot', copilotRouter);
 app.use('/api/simulate', simulateRouter);
+app.use('/api/voice-intake', voiceIntakeRouter);
+app.use('/api/voice-command', voiceCommandRouter);
 
 // Health check endpoint — useful for Render health monitors
 app.get('/api/health', (req, res) => {

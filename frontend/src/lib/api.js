@@ -97,3 +97,13 @@ export async function apiPatch(path, body) {
     body: JSON.stringify(body),
   });
 }
+
+/**
+ * Performs a DELETE request.
+ *
+ * @param {string} path - API path
+ * @returns {Promise<any>}
+ */
+export async function apiDelete(path) {
+  return apiFetch(path, { method: 'DELETE' });
+}
