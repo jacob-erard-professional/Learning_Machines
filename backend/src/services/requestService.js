@@ -8,10 +8,12 @@
  */
 
 import { validateRequest } from '../lib/validate.js';
-import { findDuplicate, saveRequest } from '../data/store.js';
+import { findDuplicate, saveRequest, getStaff } from '../data/store.js';
 import { determineRoute } from './routingService.js';
 import { runIntakeAgent, runDecisionAgent, runPlanningAgent } from '../lib/ai.js';
-import { RequestStatus } from '../lib/enums.js';
+import { RequestStatus, FulfillmentRoute, StaffingFlag } from '../lib/enums.js';
+import { checkStaffFeasibility } from './staffService.js';
+import { sendAdminAlert } from '../lib/mailer.js';
 
 /**
  * Creates a new community health request through the full pipeline.
@@ -69,6 +71,28 @@ export async function createRequest(body) {
     body.eventDate
   );
 
+  // --- Step 5b: Staff feasibility check (staff_deployment only) ---
+  let staffingFeasibility = null;
+  let staffingFlag = null;
+
+  if (routing.route === FulfillmentRoute.STAFF_DEPLOYMENT) {
+    const allStaff = getStaff();
+    if (allStaff.length === 0) {
+      // No staff data loaded — flag for admin attention but don't block submission
+      staffingFlag = StaffingFlag.NO_STAFF_DATA;
+    } else {
+      const feasibility = checkStaffFeasibility(body.eventDate, body.estimatedAttendees ?? null);
+      staffingFeasibility = {
+        needed: feasibility.needed,
+        freeCount: feasibility.freeCount,
+        shortage: feasibility.shortage,
+      };
+      if (!feasibility.feasible) {
+        staffingFlag = StaffingFlag.INSUFFICIENT_STAFF;
+      }
+    }
+  }
+
   // --- Step 6: DecisionAgent ---
   // Build the payload we send to AI — includes all structured fields
   const structuredData = {
@@ -117,7 +141,7 @@ export async function createRequest(body) {
   // --- Step 8: Build and save full Request object ---
   // Status: NEEDS_REVIEW if AI failed or AI flagged a mismatch; PENDING otherwise
   const status =
-    !aiSucceeded || aiMismatch || (aiDecision.intentMismatch)
+    !aiSucceeded || aiMismatch || aiDecision.intentMismatch || staffingFlag
       ? RequestStatus.NEEDS_REVIEW
       : RequestStatus.PENDING;
 
@@ -190,9 +214,23 @@ export async function createRequest(body) {
     adminNotes: '',
     calendarInviteGenerated: false,
 
+    // Staffing
+    staffingFlag,
+    staffingFeasibility,
+    assignedStaff: [],
+
     // Audit trail (empty at creation)
     auditLog: [],
   };
 
-  return saveRequest(request);
+  const saved = saveRequest(request);
+
+  // Send admin alert if staffing shortage detected
+  if (staffingFlag === StaffingFlag.INSUFFICIENT_STAFF) {
+    sendAdminAlert(saved, staffingFeasibility).catch((err) =>
+      console.error('[requestService] Admin alert failed:', err.message)
+    );
+  }
+
+  return saved;
 }
