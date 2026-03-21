@@ -20,6 +20,7 @@ import { createRequest } from '../services/requestService.js';
 import {
   getAllRequests,
   getRequestById,
+  refreshStoreFromSource,
   updateRequest,
   saveAdminOverride,
 } from '../data/store.js';
@@ -28,6 +29,7 @@ import { generateEmail } from '../lib/emailGenerator.js';
 import { sendConfirmationEmail, sendGeneratedEmail } from '../lib/mailer.js';
 import { findSimilarRequests } from '../lib/memory.js';
 import { FulfillmentRoute, RequestStatus } from '../lib/enums.js';
+import { assignStaffToRequest } from '../services/staffService.js';
 
 const router = Router();
 
@@ -88,8 +90,10 @@ router.post('/', async (req, res) => {
  * @route GET /api/requests
  * Supports: search, status, route, priority, zip, dateFrom, dateTo, sortBy, sortDir
  */
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
+    await refreshStoreFromSource();
+
     const {
       search,
       status,
@@ -171,15 +175,22 @@ router.get('/', (req, res) => {
 /**
  * @route GET /api/requests/:id
  */
-router.get('/:id', (req, res) => {
-  const request = getRequestById(req.params.id);
-  if (!request) {
-    return res.status(404).json({
-      error: 'NOT_FOUND',
-      message: `Request ${req.params.id} does not exist.`,
-    });
+router.get('/:id', async (req, res) => {
+  try {
+    await refreshStoreFromSource();
+
+    const request = getRequestById(req.params.id);
+    if (!request) {
+      return res.status(404).json({
+        error: 'NOT_FOUND',
+        message: `Request ${req.params.id} does not exist.`,
+      });
+    }
+    return res.json(request);
+  } catch (err) {
+    console.error('[GET /requests/:id]', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR', message: err.message });
   }
-  return res.json(request);
 });
 
 // ---------------------------------------------------------------------------
@@ -283,6 +294,17 @@ router.post('/:id/approve', async (req, res) => {
     });
     const emailDelivery = await sendGeneratedEmail(updated, 'approved');
 
+    // Assign staff for staff_deployment requests
+    let staffingWarning = null;
+    if (request.fulfillmentRoute === FulfillmentRoute.STAFF_DEPLOYMENT) {
+      const needed = request.staffingFeasibility?.needed
+        ?? Math.ceil((request.estimatedAttendees || 1) / 100);
+      const assigned = assignStaffToRequest(req.params.id, request.eventDate, needed);
+      if (assigned.length < needed) {
+        staffingWarning = `Partial staff assigned (${assigned.length}/${needed}) — capacity may have changed since submission.`;
+      }
+    }
+
     // Return .ics file as download for staff deployment events
     if (request.fulfillmentRoute === FulfillmentRoute.STAFF_DEPLOYMENT) {
       const icsContent = await generateIcsFile(updated);
@@ -300,7 +322,7 @@ router.post('/:id/approve', async (req, res) => {
       // Fall through to JSON if .ics generation failed
     }
 
-    return res.json({ id: updated.id, status: updated.status, emailDelivery });
+    return res.json({ id: updated.id, status: updated.status, emailDelivery, staffingWarning });
   } catch (err) {
     console.error('[POST /requests/:id/approve]', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR', message: err.message });
@@ -406,8 +428,9 @@ router.post('/:id/hold', async (req, res) => {
  * @route GET /api/requests/:id/similar
  * Uses keyword similarity (memory.js) to find top 3 related requests.
  */
-router.get('/:id/similar', (req, res) => {
+router.get('/:id/similar', async (req, res) => {
   try {
+    await refreshStoreFromSource();
     const request = getRequestById(req.params.id);
     if (!request) {
       return res.status(404).json({
