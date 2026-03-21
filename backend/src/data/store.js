@@ -11,6 +11,7 @@ import {
   isGoogleSheetsConfigured,
   loadStateFromGoogleSheets,
   saveStateToGoogleSheets,
+  loadStaffFromGoogleSheets,
 } from './googleSheetsStore.js';
 
 /** @type {Array<Object>} Primary requests collection */
@@ -22,6 +23,8 @@ let requests = [];
  * @type {Array<Object>}
  */
 let adminOverrides = [];
+/** @type {Array<Object>} Staff roster loaded from Google Sheets (read-only) */
+let staff = [];
 let persistChain = Promise.resolve();
 
 function queuePersist() {
@@ -137,6 +140,14 @@ export function getAdminOverrides() {
 }
 
 /**
+ * Returns a shallow copy of the staff roster.
+ * @returns {Array<Object>}
+ */
+export function getStaff() {
+  return [...staff];
+}
+
+/**
  * Appends a new override record when an admin manually changes a field
  * that was originally set by the AI or routing logic.
  *
@@ -234,6 +245,36 @@ export async function initializeStore() {
   const state = await loadStateFromGoogleSheets();
   requests = state.requests;
   adminOverrides = state.adminOverrides;
+  staff = await loadStaffFromGoogleSheets();
+  console.log(`[store] Loaded ${staff.length} staff members from Sheets`);
+
+  return {
+    source: 'google_sheets',
+    requestCount: requests.length,
+    overrideCount: adminOverrides.length,
+  };
+}
+
+/**
+ * Refreshes the in-memory snapshot from Google Sheets when configured.
+ * This is useful for local demo scenarios where the backing spreadsheet may be
+ * edited outside the app and the latest values should appear on page refresh.
+ *
+ * @returns {Promise<{ source: 'memory'|'google_sheets', requestCount: number, overrideCount: number }>}
+ */
+export async function refreshStoreFromSource() {
+  if (!isGoogleSheetsConfigured()) {
+    return {
+      source: 'memory',
+      requestCount: requests.length,
+      overrideCount: adminOverrides.length,
+    };
+  }
+
+  const state = await loadStateFromGoogleSheets();
+  requests = state.requests;
+  adminOverrides = state.adminOverrides;
+  staff = await loadStaffFromGoogleSheets();
 
   return {
     source: 'google_sheets',
