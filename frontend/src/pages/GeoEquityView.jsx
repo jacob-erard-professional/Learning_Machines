@@ -7,6 +7,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { apiGet } from '../lib/api.js';
 import { mockGeoData, mockRequests } from '../data/mockRequests.js';
+
+// Module-level lookup built from mock geo data — always available regardless
+// of whether the backend API returns matching zip codes.
+const ZIP_TO_STATE = {};
+mockGeoData.summary.forEach((row) => { ZIP_TO_STATE[row.zip] = row.state; });
 import LoadingSpinner from '../components/ui/LoadingSpinner.jsx';
 import Card from '../components/ui/Card.jsx';
 import ChoroplethMap from '../components/ChoroplethMap.jsx';
@@ -108,20 +113,13 @@ export default function GeoEquityView() {
   // maxCount still used for the mini progress bar in the table (30d column)
   const maxCount = Math.max(...summary.map((r) => r.requestCount30d), 1);
 
-  // Build zip → state lookup from geo summary rows
-  const zipToState = useMemo(() => {
-    const map = {};
-    summary.forEach((row) => { map[row.zip] = row.state; });
-    return map;
-  }, [summary]);
-
-  // Requests filtered by selected state (matched via eventZip lookup)
+  // Requests filtered by selected state using the stable module-level lookup
   const stateRequests = useMemo(() => {
     if (!selectedState) return [];
-    return mockRequests.filter((r) => zipToState[r.eventZip] === selectedState);
-  }, [selectedState, zipToState]);
+    return mockRequests.filter((r) => ZIP_TO_STATE[r.eventZip] === selectedState);
+  }, [selectedState]);
 
-  // Geo rows for the selected state
+  // Geo rows for the selected state (from whichever data source is active)
   const stateGeoRows = useMemo(() => {
     if (!selectedState) return [];
     return summary.filter((r) => r.state === selectedState);
