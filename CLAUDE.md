@@ -21,7 +21,7 @@ We are building a web application for Intermountain Healthcare in a 6-hour hacka
 - **Routing**: React Router
 - **State**: React Context or Zustand (keep it simple)
 - **Backend** (if needed): Node/Express or serverless functions
-- **Deployment**: Vercel or Netlify (fast deploys)
+- **Deployment**: Render (https://render.com)
 
 Avoid over-engineering. Prefer solutions that ship fast and look polished.
 
@@ -143,6 +143,35 @@ git push
 - [ ] Test on mobile / different browser
 - [ ] Prepare demo flow — know what you're clicking through
 - [ ] Deploy final version
+
+---
+
+## Render Deployment
+
+The site will be hosted on [Render](https://render.com). Keep the following in mind when building:
+
+### Frontend
+- Vite builds to `dist/` by default — set **Publish directory** to `dist` in Render
+- Set **Build command** to `npm run build`
+- Set **Root directory** to the project root (or `frontend/` if monorepo)
+- Add a `_redirects` file (or configure rewrite rules in Render) to support client-side routing:
+  ```
+  /*  /index.html  200
+  ```
+- The app may include **dynamic pages backed by an API** — if so, deploy as a Web Service (not a Static Site) so the server can handle both serving the frontend and API routes
+
+### Backend
+- Use a **Web Service** on Render for Node/Express regardless of whether pages are fully static, fully dynamic, or mixed
+- If the frontend and backend are separate services, use Render's **Static Site** for the frontend and a **Web Service** for the API
+- Set **Start command** to `node server.js` (or whatever your entry point is)
+- Store secrets as **Environment Variables** in the Render dashboard — never hard-code them
+- Set `NODE_ENV=production` in Render env vars
+
+### General Render Prep
+- Ensure `engines` field in `package.json` specifies the Node version (e.g., `"node": ">=18"`)
+- All environment variables used in the app must be set in Render before deploy
+- Free-tier Render services spin down after inactivity — acceptable for a hackathon demo
+- Connect the GitHub repo to Render for auto-deploys on push to `main`
 
 ---
 
