@@ -221,6 +221,7 @@ pnpm-debug.log*
 .env.local
 .env.*.local
 backend/.env.example
+backend/.gmail-oauth.json
 
 # Vite / React build output
 dist/

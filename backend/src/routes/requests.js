@@ -25,6 +25,7 @@ import {
 } from '../data/store.js';
 import { generateIcsFile } from '../lib/calendar.js';
 import { generateEmail } from '../lib/emailGenerator.js';
+import { sendConfirmationEmail, sendGeneratedEmail } from '../lib/mailer.js';
 import { findSimilarRequests } from '../lib/memory.js';
 import { FulfillmentRoute, RequestStatus } from '../lib/enums.js';
 
@@ -53,6 +54,7 @@ router.post('/', async (req, res) => {
 
     // If AI failed, signal 503 but still return the saved request
     const statusCode = result.aiStatus === 'failed' ? 503 : 201;
+    const emailDelivery = await sendConfirmationEmail(result);
 
     return res.status(statusCode).json({
       id: result.id,
@@ -67,6 +69,7 @@ router.post('/', async (req, res) => {
       priority: result.priority,
       urgency: result.urgency,
       createdAt: result.createdAt,
+      emailDelivery,
     });
   } catch (err) {
     if (err.code === 'VALIDATION_ERROR') {
@@ -278,6 +281,7 @@ router.post('/:id/approve', async (req, res) => {
       calendarInviteGenerated: request.fulfillmentRoute === FulfillmentRoute.STAFF_DEPLOYMENT,
       auditLog: [...(request.auditLog ?? []), auditEntry],
     });
+    const emailDelivery = await sendGeneratedEmail(updated, 'approved');
 
     // Return .ics file as download for staff deployment events
     if (request.fulfillmentRoute === FulfillmentRoute.STAFF_DEPLOYMENT) {
@@ -296,7 +300,7 @@ router.post('/:id/approve', async (req, res) => {
       // Fall through to JSON if .ics generation failed
     }
 
-    return res.json({ id: updated.id, status: updated.status });
+    return res.json({ id: updated.id, status: updated.status, emailDelivery });
   } catch (err) {
     console.error('[POST /requests/:id/approve]', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR', message: err.message });
@@ -311,7 +315,7 @@ router.post('/:id/approve', async (req, res) => {
  * @route POST /api/requests/:id/reject
  * Body: { reason: string } — required
  */
-router.post('/:id/reject', (req, res) => {
+router.post('/:id/reject', async (req, res) => {
   try {
     const { reason } = req.body;
     if (!reason || !String(reason).trim()) {
@@ -343,8 +347,9 @@ router.post('/:id/reject', (req, res) => {
       adminNotes: reason,
       auditLog: [...(request.auditLog ?? []), auditEntry],
     });
+    const emailDelivery = await sendGeneratedEmail(updated, 'rejection');
 
-    return res.json({ id: updated.id, status: updated.status, reason });
+    return res.json({ id: updated.id, status: updated.status, reason, emailDelivery });
   } catch (err) {
     console.error('[POST /requests/:id/reject]', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR', message: err.message });
@@ -359,7 +364,7 @@ router.post('/:id/reject', (req, res) => {
  * @route POST /api/requests/:id/hold
  * Body: { note: string } — optional
  */
-router.post('/:id/hold', (req, res) => {
+router.post('/:id/hold', async (req, res) => {
   try {
     const request = getRequestById(req.params.id);
     if (!request) {
@@ -384,8 +389,9 @@ router.post('/:id/hold', (req, res) => {
       adminNotes: note,
       auditLog: [...(request.auditLog ?? []), auditEntry],
     });
+    const emailDelivery = await sendGeneratedEmail(updated, 'held');
 
-    return res.json({ id: updated.id, status: updated.status, note });
+    return res.json({ id: updated.id, status: updated.status, note, emailDelivery });
   } catch (err) {
     console.error('[POST /requests/:id/hold]', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR', message: err.message });
@@ -461,7 +467,7 @@ router.post('/:id/export-qualtrics', async (req, res) => {
 
 /**
  * @route POST /api/requests/:id/generate-email
- * Body: { type: 'confirmation' | 'rejection' | 'clarification' | 'followup' }
+ * Body: { type: 'confirmation' | 'approved' | 'rejection' | 'held' | 'followup' }
  */
 router.post('/:id/generate-email', async (req, res) => {
   try {

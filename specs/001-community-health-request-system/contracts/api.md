@@ -43,7 +43,13 @@ Submit a new Community Health support request.
   "aiTags": ["health fair", "seniors", "blood pressure"],
   "aiSummary": "Senior health fair requiring on-site blood pressure screening materials.",
   "aiConfidence": "high",
-  "createdAt": "2026-03-21T14:30:00Z"
+  "createdAt": "2026-03-21T14:30:00Z",
+  "emailDelivery": {
+    "status": "sent",
+    "to": "jane@example.com",
+    "subject": "Your Community Health Request Has Been Received",
+    "messageId": "<abc123@gmail.com>"
+  }
 }
 ```
 
@@ -70,6 +76,9 @@ Submit a new Community Health support request.
   "createdAt": "2026-03-21T14:31:00Z"
 }
 ```
+
+`emailDelivery.status` may also be `disabled`, `failed`, or `skipped` if Gmail
+has not been connected yet, delivery fails, or no recipient email is available.
 
 ---
 
@@ -187,11 +196,21 @@ fields are updated. Generates an AuditEntry for each changed field.
 ## POST /api/requests/:id/approve
 
 Approve a request. Sets status to `approved`. Returns the .ics file as an
-attachment if the route is `staff_deployment`.
+attachment if the route is `staff_deployment`. Also sends an approval email to
+the requestor.
 
 **Response 200** (mail/pickup route — no calendar):
 ```json
-{ "id": "REQ-0003", "status": "approved" }
+{
+  "id": "REQ-0003",
+  "status": "approved",
+  "emailDelivery": {
+    "status": "sent",
+    "to": "jane@example.com",
+    "subject": "Your Community Health Request Update",
+    "messageId": "<gmail-message-id>"
+  }
+}
 ```
 
 **Response 200** (staff_deployment route — with calendar invite):
@@ -202,6 +221,60 @@ Content-Disposition: attachment; filename="REQ-0001-Senior-Health-Fair.ics"
 BEGIN:VCALENDAR
 ...
 END:VCALENDAR
+```
+
+---
+
+## POST /api/requests/:id/reject
+
+Reject a request. Sets status to `rejected`, stores the provided reason in
+`adminNotes`, and sends a rejection email to the requestor.
+
+**Request body:**
+```json
+{ "reason": "Does not align with mission." }
+```
+
+**Response 200:**
+```json
+{
+  "id": "REQ-0003",
+  "status": "rejected",
+  "reason": "Does not align with mission.",
+  "emailDelivery": {
+    "status": "sent",
+    "to": "jane@example.com",
+    "subject": "Update on Your Community Health Request",
+    "messageId": "<gmail-message-id>"
+  }
+}
+```
+
+---
+
+## POST /api/requests/:id/hold
+
+Move a request to `needs_review`, persist the optional note in `adminNotes`, and
+send a clarification email to the requestor.
+
+**Request body:**
+```json
+{ "note": "Need more info." }
+```
+
+**Response 200:**
+```json
+{
+  "id": "REQ-0003",
+  "status": "needs_review",
+  "note": "Need more info.",
+  "emailDelivery": {
+    "status": "sent",
+    "to": "jane@example.com",
+    "subject": "Questions About Your Community Health Request",
+    "messageId": "<gmail-message-id>"
+  }
+}
 ```
 
 ---
@@ -287,5 +360,51 @@ calendar panel.
       "requestorPhone": "801-555-0100"
     }
   ]
+}
+```
+
+---
+
+## GET /api/auth/google/status
+
+Returns whether backend Google OAuth is configured and whether a Gmail sender
+account has already been connected.
+
+**Response 200:**
+```json
+{
+  "configured": true,
+  "connected": false,
+  "redirectUri": "http://localhost:3001/api/auth/google/callback",
+  "fromAddress": "erardjacob@gmail.com",
+  "fromName": "Learning Machines",
+  "tokenFile": "/path/to/backend/.gmail-oauth.json",
+  "hasRefreshToken": false,
+  "connectUrl": "https://accounts.google.com/o/oauth2/v2/auth?..."
+}
+```
+
+---
+
+## GET /api/auth/google/connect
+
+Redirects the browser to Google's OAuth consent screen for the Gmail send scope.
+
+---
+
+## GET /api/auth/google/callback
+
+OAuth callback endpoint. Exchanges the Google authorization code for tokens and
+saves them locally for later form-submission emails.
+
+**Response 200:**
+```json
+{
+  "connected": true,
+  "message": "Google authorization saved. New form submissions can now send Gmail messages.",
+  "email": "erardjacob@gmail.com",
+  "scope": "https://www.googleapis.com/auth/gmail.send",
+  "expiryDate": 1770000000000,
+  "tokenFile": "/path/to/backend/.gmail-oauth.json"
 }
 ```

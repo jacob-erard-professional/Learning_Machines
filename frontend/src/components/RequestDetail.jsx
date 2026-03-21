@@ -136,13 +136,17 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
           a.click();
           URL.revokeObjectURL(url);
         }
-        updated = { status: 'approved' };
-      } else {
-        const statusMap = { reject: 'rejected', hold: 'needs_review' };
-        updated = await apiPatch(`/api/requests/${requestId}`, {
-          status: statusMap[action],
-          adminNotes: actionNote,
+        updated = typeof result === 'string' ? { status: 'approved' } : result;
+      } else if (action === 'reject') {
+        updated = await apiPost(`/api/requests/${requestId}/reject`, {
+          reason: actionNote,
         });
+      } else if (action === 'hold') {
+        updated = await apiPost(`/api/requests/${requestId}/hold`, {
+          note: actionNote,
+        });
+      } else {
+        updated = {};
       }
 
       setRequest((prev) => ({ ...prev, ...updated }));

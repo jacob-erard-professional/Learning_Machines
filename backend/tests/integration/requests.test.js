@@ -52,6 +52,21 @@ vi.mock('../../src/lib/ai.js', () => ({
   })),
 }));
 
+vi.mock('../../src/lib/mailer.js', () => ({
+  sendConfirmationEmail: vi.fn(async (request) => ({
+    status: 'sent',
+    to: request.requestorEmail,
+    subject: 'Your Community Health Request Has Been Received',
+    messageId: 'mock-message-id',
+  })),
+  sendGeneratedEmail: vi.fn(async (request, type) => ({
+    status: 'sent',
+    to: request.requestorEmail,
+    subject: `mock-${type}`,
+    messageId: `mock-${type}-message-id`,
+  })),
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -98,6 +113,12 @@ describe('POST /api/requests', () => {
     expect(res.body.isInServiceArea).toBe(true);
     expect(res.body.fulfillmentRoute).toBe('staff_deployment');
     expect(res.body).toHaveProperty('createdAt');
+    expect(res.body.emailDelivery).toEqual({
+      status: 'sent',
+      to: 'jane@example.com',
+      subject: 'Your Community Health Request Has Been Received',
+      messageId: 'mock-message-id',
+    });
   });
 
   it('returns 201 with aiStatus success when AI mock succeeds', async () => {
@@ -396,6 +417,30 @@ describe('PATCH /api/requests/:id', () => {
 });
 
 // ---------------------------------------------------------------------------
+// POST /api/requests/:id/approve
+// ---------------------------------------------------------------------------
+
+describe('POST /api/requests/:id/approve', () => {
+  it('sets status to approved and returns email delivery for non-calendar routes', async () => {
+    const create = await request(app)
+      .post('/api/requests')
+      .send({ ...VALID_BODY, requestType: 'mailed_materials' });
+    const id = create.body.id;
+
+    const res = await request(app).post(`/api/requests/${id}/approve`).send({});
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('approved');
+    expect(res.body.emailDelivery).toEqual({
+      status: 'sent',
+      to: 'jane@example.com',
+      subject: 'mock-approved',
+      messageId: 'mock-approved-message-id',
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
 // POST /api/requests/:id/reject
 // ---------------------------------------------------------------------------
 
@@ -419,6 +464,12 @@ describe('POST /api/requests/:id/reject', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('rejected');
+    expect(res.body.emailDelivery).toEqual({
+      status: 'sent',
+      to: 'jane@example.com',
+      subject: 'mock-rejection',
+      messageId: 'mock-rejection-message-id',
+    });
   });
 });
 
@@ -437,6 +488,12 @@ describe('POST /api/requests/:id/hold', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('needs_review');
+    expect(res.body.emailDelivery).toEqual({
+      status: 'sent',
+      to: 'jane@example.com',
+      subject: 'mock-held',
+      messageId: 'mock-held-message-id',
+    });
   });
 });
 
@@ -465,6 +522,16 @@ describe('GET /api/health', () => {
     const res = await request(app).get('/api/health');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ok');
+  });
+});
+
+describe('GET /api/auth/google/status', () => {
+  it('returns auth status even when Google OAuth is not configured', async () => {
+    const res = await request(app).get('/api/auth/google/status');
+    expect(res.status).toBe(200);
+    expect(res.body.configured).toBe(false);
+    expect(res.body.connected).toBe(false);
+    expect(res.body.connectUrl).toBe(null);
   });
 });
 

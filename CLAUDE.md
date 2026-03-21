@@ -243,6 +243,8 @@ The site will be hosted on [Render](https://render.com). Keep the following in m
 ## Active Technologies
 - Node.js 20 LTS (backend), React 18 + Vite 5 (frontend) + Express 4, React Router 6, Tailwind CSS 3, Zustand, (001-community-health-request-system)
 - In-memory JavaScript array (module-level); swap target is `lowdb` (001-community-health-request-system)
+- Browser Web Speech API (SpeechRecognition), @anthropic-ai/sdk, in-memory Map for voice sessions (feat/voice-detection-form-input)
 
 ## Recent Changes
 - 001-community-health-request-system: Added Node.js 20 LTS (backend), React 18 + Vite 5 (frontend) + Express 4, React Router 6, Tailwind CSS 3, Zustand,
+- feat/voice-detection-form-input: Voice-driven conversational form intake — Web Speech API + Claude API JSON-mode extraction + in-memory session Map; VoiceIntakeModal component + useVoiceInput hook + POST /api/voice-intake routes

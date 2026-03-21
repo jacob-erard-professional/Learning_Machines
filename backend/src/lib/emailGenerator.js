@@ -5,8 +5,9 @@
  *
  * Supported email types:
  * - confirmation: Sent after request submission
+ * - approved: Sent when a request is approved
  * - rejection: Sent when a request is rejected
- * - clarification: Sent when admin needs more info
+ * - held: Sent when admin needs more info before deciding
  * - followup: Post-event follow-up
  */
 
@@ -24,13 +25,17 @@ const FALLBACK_TEMPLATES = {
     subject: 'Your Community Health Request Has Been Received',
     body: `Dear {name},\n\nThank you for submitting your community health support request for {eventName}. We have received your request and it is currently under review.\n\nRequest ID: {id}\nEvent Date: {eventDate}\n\nA member of our Community Health team will follow up with you shortly.\n\nWarm regards,\nIntermountain Community Health Team`,
   },
+  approved: {
+    subject: 'Your Community Health Request Has Been Approved',
+    body: `Dear {name},\n\nWe are pleased to let you know that your community health support request for {eventName} has been approved.\n\nRequest ID: {id}\nEvent Date: {eventDate}\n\nOur team will follow up with any next steps or logistical details if needed.\n\nWarm regards,\nIntermountain Community Health Team`,
+  },
   rejection: {
     subject: 'Update on Your Community Health Request',
     body: `Dear {name},\n\nThank you for your interest in partnering with Intermountain Healthcare's Community Health program.\n\nAfter review, we are unfortunately unable to fulfill your request (ID: {id}) for {eventName} at this time.\n\nWe encourage you to resubmit for future events.\n\nWarm regards,\nIntermountain Community Health Team`,
   },
-  clarification: {
-    subject: 'Questions About Your Community Health Request',
-    body: `Dear {name},\n\nThank you for your community health support request (ID: {id}) for {eventName}.\n\nOur team has a few questions before we can process your request. Please reply to this email with any additional details.\n\nWarm regards,\nIntermountain Community Health Team`,
+  held: {
+    subject: 'Your Community Health Request Is On Hold',
+    body: `Dear {name},\n\nThank you for your community health support request (ID: {id}) for {eventName}.\n\nYour request is currently on hold while our team reviews a few additional details. Please reply to this email if you can provide any information that may help us continue processing it.\n\nWarm regards,\nIntermountain Community Health Team`,
   },
   followup: {
     subject: 'Follow-Up: Your Recent Community Health Event',
@@ -57,11 +62,11 @@ function fillTemplate(template, request) {
  * Falls back to a generic template if the AI call fails.
  *
  * @param {Object} request - The request object from the store
- * @param {'confirmation'|'rejection'|'clarification'|'followup'} type - Email type
+ * @param {'confirmation'|'approved'|'rejection'|'held'|'followup'} type - Email type
  * @returns {Promise<{ subject: string, body: string }>}
  */
 export async function generateEmail(request, type) {
-  const validTypes = ['confirmation', 'rejection', 'clarification', 'followup'];
+  const validTypes = ['confirmation', 'approved', 'rejection', 'held', 'followup'];
   if (!validTypes.includes(type)) {
     type = 'confirmation';
   }
@@ -81,8 +86,9 @@ Admin Notes: ${request.adminNotes || 'None'}
 
     const typeInstructions = {
       confirmation: 'Write a warm confirmation email acknowledging receipt of their community health support request. Mention the request ID and event date. Let them know a team member will follow up.',
+      approved: 'Write a warm, concise approval email telling them their request has been approved. Mention the request ID and event date. Do not ask for post-event feedback or imply the event has already happened.',
       rejection: 'Write a respectful, empathetic rejection email. Do not be apologetic to a fault — be professional. Include the reason from admin notes if available. Encourage future engagement.',
-      clarification: 'Write a friendly email asking for additional information or clarification about their request. Reference the admin notes for what specifically is needed.',
+      held: 'Write a clear, friendly email telling them their request is on hold pending more information or review. Reference the admin notes for what specifically is needed. Do not reject or approve the request.',
       followup: 'Write a warm post-event follow-up email thanking them for partnering with Intermountain. Ask about event outcomes and encourage future requests.',
     };
 
