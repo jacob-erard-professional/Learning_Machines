@@ -68,3 +68,13 @@ export const UrgencyLevel = Object.freeze({
   URGENT: 'urgent',
   STANDARD: 'standard',
 });
+
+/**
+ * Staffing feasibility flag — set when a staff_deployment request cannot be
+ * fulfilled with currently available staff.
+ * @type {{ INSUFFICIENT_STAFF: string, NO_STAFF_DATA: string }}
+ */
+export const StaffingFlag = Object.freeze({
+  INSUFFICIENT_STAFF: 'insufficient_staff',
+  NO_STAFF_DATA: 'no_staff_data',
+});
