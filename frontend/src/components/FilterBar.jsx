@@ -169,8 +169,8 @@ export default function FilterBar() {
         />
       </div>
 
-      {/* Dropdowns row */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {/* Dropdowns + sort row */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div>
           <label htmlFor="filter-status" className="sr-only">Filter by status</label>
           <select
@@ -212,21 +212,20 @@ export default function FilterBar() {
             ))}
           </select>
         </div>
-      </div>
 
-      {/* Sort row */}
-      <div className="flex items-center gap-2">
-        <label htmlFor="filter-sort" className="text-xs text-gray-500 whitespace-nowrap">Sort by</label>
-        <select
-          id="filter-sort"
-          value={`${filters.sortBy}:${filters.sortDir}`}
-          onChange={handleSortChange}
-          className="flex-1 text-sm border border-brand-periwinkle-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
-        >
-          {SORT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        <div>
+          <label htmlFor="filter-sort" className="sr-only">Sort by</label>
+          <select
+            id="filter-sort"
+            value={`${filters.sortBy}:${filters.sortDir}`}
+            onChange={handleSortChange}
+            className="block w-full text-sm border border-brand-periwinkle-200 rounded-xl px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Date range + clear */}
