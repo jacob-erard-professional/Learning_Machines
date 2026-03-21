@@ -23,31 +23,26 @@ const COLORS = {
 
 const LEGEND = [
   { bg: COLORS.none,        label: 'No requests' },
-  { bg: COLORS.low,         label: 'Low' },
-  { bg: COLORS.medium,      label: 'Medium' },
-  { bg: COLORS.high,        label: 'High' },
+  { bg: COLORS.low,         label: 'Low (1–2)' },
+  { bg: COLORS.medium,      label: 'Medium (3–5)' },
+  { bg: COLORS.high,        label: 'High (6+)' },
   { bg: COLORS.highDemand,  label: 'High Demand' },
   { bg: COLORS.underserved, label: 'Underserved' },
 ];
 
 /**
  * Returns inline bg + text color for a heatmap tile.
- * Flags take priority over volume scale.
+ * Flags take priority; otherwise absolute count thresholds drive the teal scale
+ * so a ZIP with 1 request always looks "low" regardless of what other ZIPs have.
  */
-function tileStyle(row, maxCount) {
-  if (row.flag === 'high_demand') {
-    return { bg: COLORS.highDemand, color: '#fff' };
-  }
-  if (row.flag === 'underserved') {
-    return { bg: COLORS.underserved, color: '#fff' };
-  }
-  if (!row.totalRequestCount) {
-    return { bg: COLORS.none, color: '#6b7280' };
-  }
-  const intensity = row.totalRequestCount / maxCount;
-  if (intensity < 0.33) return { bg: COLORS.low,    color: '#134e4a' };
-  if (intensity < 0.66) return { bg: COLORS.medium, color: '#134e4a' };
-  return                        { bg: COLORS.high,   color: '#fff' };
+function tileStyle(row) {
+  if (row.flag === 'high_demand') return { bg: COLORS.highDemand, color: '#fff' };
+  if (row.flag === 'underserved') return { bg: COLORS.underserved, color: '#fff' };
+  const n = row.totalRequestCount ?? 0;
+  if (n === 0)  return { bg: COLORS.none,   color: '#6b7280' };
+  if (n <= 2)   return { bg: COLORS.low,    color: '#134e4a' };
+  if (n <= 5)   return { bg: COLORS.medium, color: '#134e4a' };
+  return               { bg: COLORS.high,   color: '#fff' };
 }
 
 /** Sort by column */
@@ -104,8 +99,8 @@ export default function GeoEquityView() {
   const underservedCount = summary.filter((r) => r.flag === 'underserved').length;
   const sortedData = sortData(summary, sortCol, sortDir);
 
-  // Scale tile color by total historical requests (not just 30d — avoids all-gray when recent counts are low)
-  const maxCount = Math.max(...summary.map((r) => r.totalRequestCount), 1);
+  // maxCount still used for the mini progress bar in the table (30d column)
+  const maxCount = Math.max(...summary.map((r) => r.requestCount30d), 1);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -257,7 +252,7 @@ export default function GeoEquityView() {
             </p>
             <div className="flex flex-wrap gap-2" role="img" aria-label="ZIP code demand heatmap">
               {sortedData.map((row) => {
-                const { bg, color } = tileStyle(row, maxCount);
+                const { bg, color } = tileStyle(row);
                 return (
                   <div
                     key={row.zip}
