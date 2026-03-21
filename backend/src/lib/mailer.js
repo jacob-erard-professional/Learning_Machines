@@ -110,3 +110,65 @@ export async function sendGeneratedEmail(request, type = 'confirmation') {
 export async function sendConfirmationEmail(request) {
   return sendGeneratedEmail(request, 'confirmation');
 }
+
+const ADMIN_ALERT_EMAIL = 'erardjacob@gmail.com';
+
+/**
+ * Sends a staffing shortage alert to the admin email address.
+ * Non-blocking — if Gmail OAuth is not connected, logs and returns disabled status.
+ *
+ * @param {Object} request - The full request object
+ * @param {{ needed: number, freeCount: number, shortage: number }} feasibilityResult
+ * @returns {Promise<{status: 'sent'|'failed'|'disabled', reason?: string}>}
+ */
+export async function sendAdminAlert(request, feasibilityResult) {
+  const authStatus = await getGoogleAuthStatus();
+  if (!authStatus.configured) {
+    console.warn('[mailer] Admin alert skipped — Gmail OAuth not configured');
+    return { status: 'disabled', reason: 'Gmail OAuth not configured' };
+  }
+
+  const auth = await getAuthorizedOAuthClient();
+  if (!auth) {
+    console.warn('[mailer] Admin alert skipped — Gmail not connected');
+    return { status: 'disabled', reason: 'Gmail not connected' };
+  }
+
+  const subject = `[Staffing Alert] Insufficient staff for ${request.eventName ?? request.id}`;
+  const body = [
+    `A new community health request requires more staff than currently available.`,
+    ``,
+    `Request ID:       ${request.id}`,
+    `Event Name:       ${request.eventName ?? '(unnamed)'}`,
+    `Event Date:       ${request.eventDate}`,
+    `Event City:       ${request.eventCity ?? ''}`,
+    `Attendees:        ${request.estimatedAttendees ?? 'unknown'}`,
+    `Staff Needed:     ${feasibilityResult.needed}`,
+    `Staff Available:  ${feasibilityResult.freeCount}`,
+    `Shortage:         ${feasibilityResult.shortage}`,
+    ``,
+    `This request has been flagged as needs_review. Please log in to the admin dashboard to review and resolve.`,
+  ].join('\n');
+
+  try {
+    const gmail = google.gmail({ version: 'v1', auth });
+    const fromHeader = `"${authStatus.fromName}" <${authStatus.fromAddress}>`;
+    const raw = buildRawMessage({
+      from: fromHeader,
+      to: ADMIN_ALERT_EMAIL,
+      replyTo: authStatus.fromAddress,
+      subject,
+      body,
+    });
+
+    const response = await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: { raw },
+    });
+
+    return { status: 'sent', to: ADMIN_ALERT_EMAIL, messageId: response.data.id ?? null };
+  } catch (err) {
+    console.error('[mailer] Failed to send admin alert:', err);
+    return { status: 'failed', reason: err.message };
+  }
+}
