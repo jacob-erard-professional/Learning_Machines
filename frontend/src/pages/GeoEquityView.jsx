@@ -64,8 +64,8 @@ export default function GeoEquityView() {
   const underservedCount = summary.filter((r) => r.flag === 'underserved').length;
   const sortedData = sortData(summary, sortCol, sortDir);
 
-  // Heatmap max for color scaling
-  const maxCount = Math.max(...summary.map((r) => r.requestCount30d), 1);
+  // Scale tile color by total historical requests (not just 30d — avoids all-gray when recent counts are low)
+  const maxCount = Math.max(...summary.map((r) => r.totalRequestCount), 1);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -174,6 +174,7 @@ export default function GeoEquityView() {
                             </div>
                             <span className="text-sm font-medium text-gray-900">{row.requestCount30d}</span>
                           </div>
+
                         </td>
                         <td className="px-4 py-3 text-gray-700">{row.totalRequestCount}</td>
                         <td className="px-4 py-3">
@@ -211,29 +212,46 @@ export default function GeoEquityView() {
           <Card className="p-5">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">Request Density Heatmap</h2>
             <p className="text-xs text-gray-500 mb-4">
-              Each block represents a ZIP code. Color indicates 30-day request volume.
-              Label shows ZIP code.
+              Each block represents a ZIP code. Color indicates total request volume.
+              Amber = high demand · Blue = underserved · Number shows total requests.
             </p>
             <div className="flex flex-wrap gap-2" role="img" aria-label="ZIP code demand heatmap">
               {sortedData.map((row) => {
-                const intensity = row.requestCount30d / maxCount;
-                let bgClass = 'bg-gray-100';
-                if (intensity === 0) bgClass = 'bg-gray-100';
-                else if (intensity < 0.3) bgClass = 'bg-ihc-teal-100';
-                else if (intensity < 0.6) bgClass = 'bg-ihc-teal-300';
-                else bgClass = 'bg-ihc-blue-500';
+                const intensity = row.totalRequestCount / maxCount;
+                const isHighDemand = row.flag === 'high_demand';
+                const isUnderserved = row.flag === 'underserved';
 
-                const textClass = intensity >= 0.6 ? 'text-white' : 'text-gray-700';
+                // Flag colors take priority; then scale by total request count
+                let bgClass, textClass;
+                if (isHighDemand) {
+                  bgClass = 'bg-ihc-amber-500';
+                  textClass = 'text-white';
+                } else if (isUnderserved) {
+                  bgClass = 'bg-ihc-blue-400';
+                  textClass = 'text-white';
+                } else if (intensity === 0) {
+                  bgClass = 'bg-gray-100';
+                  textClass = 'text-gray-500';
+                } else if (intensity < 0.33) {
+                  bgClass = 'bg-ihc-teal-100';
+                  textClass = 'text-ihc-teal-800';
+                } else if (intensity < 0.66) {
+                  bgClass = 'bg-ihc-teal-300';
+                  textClass = 'text-ihc-teal-900';
+                } else {
+                  bgClass = 'bg-ihc-teal-500';
+                  textClass = 'text-white';
+                }
 
                 return (
                   <div
                     key={row.zip}
                     className={`${bgClass} ${textClass} rounded-lg p-2 text-center min-w-[60px] transition-transform hover:scale-110 cursor-default`}
-                    title={`${row.zip} — ${row.city}: ${row.requestCount30d} requests (30d)`}
-                    aria-label={`${row.zip} ${row.city}: ${row.requestCount30d} requests in last 30 days`}
+                    title={`${row.zip} — ${row.city}: ${row.totalRequestCount} total requests, ${row.requestCount30d} in last 30d${row.flag ? ` (${row.flag})` : ''}`}
+                    aria-label={`${row.zip} ${row.city}: ${row.totalRequestCount} total requests`}
                   >
                     <p className="text-xs font-mono font-bold">{row.zip}</p>
-                    <p className="text-xs mt-0.5">{row.requestCount30d}</p>
+                    <p className="text-xs mt-0.5">{row.totalRequestCount}</p>
                   </div>
                 );
               })}
@@ -243,9 +261,11 @@ export default function GeoEquityView() {
               <span className="text-xs text-gray-500 font-medium">Legend:</span>
               {[
                 { bg: 'bg-gray-100', label: 'No requests' },
-                { bg: 'bg-ihc-teal-100', label: 'Low (1-2)' },
-                { bg: 'bg-ihc-teal-300', label: 'Medium (3-5)' },
-                { bg: 'bg-ihc-blue-500', label: 'High (6+)' },
+                { bg: 'bg-ihc-teal-100', label: 'Low' },
+                { bg: 'bg-ihc-teal-300', label: 'Medium' },
+                { bg: 'bg-ihc-teal-500', label: 'High' },
+                { bg: 'bg-ihc-amber-500', label: 'High Demand' },
+                { bg: 'bg-ihc-blue-400', label: 'Underserved' },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-1.5">
                   <div className={`w-4 h-4 rounded ${item.bg} border border-gray-200`} aria-hidden="true" />
