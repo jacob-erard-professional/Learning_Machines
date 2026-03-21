@@ -10,6 +10,46 @@ import { mockGeoData } from '../data/mockRequests.js';
 import LoadingSpinner from '../components/ui/LoadingSpinner.jsx';
 import Card from '../components/ui/Card.jsx';
 
+// IHC brand hex values used for heatmap tiles.
+// Inline styles bypass Tailwind's purge — guaranteed to render correctly.
+const COLORS = {
+  none:        '#f3f4f6', // gray-100
+  low:         '#ccfbf1', // teal-100
+  medium:      '#5eead4', // teal-300
+  high:        '#00897b', // ihc-teal-500
+  highDemand:  '#f59e0b', // ihc-amber-500
+  underserved: '#3b82f6', // blue-500 (ihc-blue-400 equiv — not in config)
+};
+
+const LEGEND = [
+  { bg: COLORS.none,        label: 'No requests' },
+  { bg: COLORS.low,         label: 'Low' },
+  { bg: COLORS.medium,      label: 'Medium' },
+  { bg: COLORS.high,        label: 'High' },
+  { bg: COLORS.highDemand,  label: 'High Demand' },
+  { bg: COLORS.underserved, label: 'Underserved' },
+];
+
+/**
+ * Returns inline bg + text color for a heatmap tile.
+ * Flags take priority over volume scale.
+ */
+function tileStyle(row, maxCount) {
+  if (row.flag === 'high_demand') {
+    return { bg: COLORS.highDemand, color: '#fff' };
+  }
+  if (row.flag === 'underserved') {
+    return { bg: COLORS.underserved, color: '#fff' };
+  }
+  if (!row.totalRequestCount) {
+    return { bg: COLORS.none, color: '#6b7280' };
+  }
+  const intensity = row.totalRequestCount / maxCount;
+  if (intensity < 0.33) return { bg: COLORS.low,    color: '#134e4a' };
+  if (intensity < 0.66) return { bg: COLORS.medium, color: '#134e4a' };
+  return                        { bg: COLORS.high,   color: '#fff' };
+}
+
 /** Sort by column */
 function sortData(data, column, dir) {
   return [...data].sort((a, b) => {
@@ -213,41 +253,17 @@ export default function GeoEquityView() {
             <h2 className="text-sm font-semibold text-gray-700 mb-3">Request Density Heatmap</h2>
             <p className="text-xs text-gray-500 mb-4">
               Each block represents a ZIP code. Color indicates total request volume.
-              Amber = high demand · Blue = underserved · Number shows total requests.
+              Amber = high demand · Blue = underserved · Teal scale = volume.
             </p>
             <div className="flex flex-wrap gap-2" role="img" aria-label="ZIP code demand heatmap">
               {sortedData.map((row) => {
-                const intensity = row.totalRequestCount / maxCount;
-                const isHighDemand = row.flag === 'high_demand';
-                const isUnderserved = row.flag === 'underserved';
-
-                // Flag colors take priority; then scale by total request count
-                let bgClass, textClass;
-                if (isHighDemand) {
-                  bgClass = 'bg-ihc-amber-500';
-                  textClass = 'text-white';
-                } else if (isUnderserved) {
-                  bgClass = 'bg-ihc-blue-400';
-                  textClass = 'text-white';
-                } else if (intensity === 0) {
-                  bgClass = 'bg-gray-100';
-                  textClass = 'text-gray-500';
-                } else if (intensity < 0.33) {
-                  bgClass = 'bg-ihc-teal-100';
-                  textClass = 'text-ihc-teal-800';
-                } else if (intensity < 0.66) {
-                  bgClass = 'bg-ihc-teal-300';
-                  textClass = 'text-ihc-teal-900';
-                } else {
-                  bgClass = 'bg-ihc-teal-500';
-                  textClass = 'text-white';
-                }
-
+                const { bg, color } = tileStyle(row, maxCount);
                 return (
                   <div
                     key={row.zip}
-                    className={`${bgClass} ${textClass} rounded-lg p-2 text-center min-w-[60px] transition-transform hover:scale-110 cursor-default`}
-                    title={`${row.zip} — ${row.city}: ${row.totalRequestCount} total requests, ${row.requestCount30d} in last 30d${row.flag ? ` (${row.flag})` : ''}`}
+                    style={{ backgroundColor: bg, color }}
+                    className="rounded-lg p-2 text-center min-w-[60px] transition-transform hover:scale-110 cursor-default"
+                    title={`${row.zip} — ${row.city}: ${row.totalRequestCount} total, ${row.requestCount30d} last 30d${row.flag ? ` · ${row.flag}` : ''}`}
                     aria-label={`${row.zip} ${row.city}: ${row.totalRequestCount} total requests`}
                   >
                     <p className="text-xs font-mono font-bold">{row.zip}</p>
@@ -256,19 +272,16 @@ export default function GeoEquityView() {
                 );
               })}
             </div>
-            {/* Legend */}
+            {/* Legend — inline styles match tile logic exactly */}
             <div className="flex items-center gap-3 mt-4 flex-wrap" aria-label="Heatmap legend">
               <span className="text-xs text-gray-500 font-medium">Legend:</span>
-              {[
-                { bg: 'bg-gray-100', label: 'No requests' },
-                { bg: 'bg-ihc-teal-100', label: 'Low' },
-                { bg: 'bg-ihc-teal-300', label: 'Medium' },
-                { bg: 'bg-ihc-teal-500', label: 'High' },
-                { bg: 'bg-ihc-amber-500', label: 'High Demand' },
-                { bg: 'bg-ihc-blue-400', label: 'Underserved' },
-              ].map((item) => (
+              {LEGEND.map((item) => (
                 <div key={item.label} className="flex items-center gap-1.5">
-                  <div className={`w-4 h-4 rounded ${item.bg} border border-gray-200`} aria-hidden="true" />
+                  <div
+                    className="w-4 h-4 rounded border border-gray-200"
+                    style={{ backgroundColor: item.bg }}
+                    aria-hidden="true"
+                  />
                   <span className="text-xs text-gray-600">{item.label}</span>
                 </div>
               ))}
