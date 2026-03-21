@@ -53,8 +53,11 @@ export default function AppShell() {
     setMobileOpen(false);
   }, [location.pathname]);
 
+  const SCROLLABLE_ADMIN = ['/admin/geo', '/admin/analytics', '/admin/simulate'];
+  const isLockedAdmin = location.pathname.startsWith('/admin') && !SCROLLABLE_ADMIN.includes(location.pathname);
+
   return (
-    <div className={`bg-gray-50 flex flex-col ${location.pathname.startsWith('/admin') ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+    <div className={`bg-gray-50 flex flex-col ${isLockedAdmin ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       {/* Skip to content — screen reader and keyboard accessible */}
       <a href="#main-content" className="skip-link">
         Skip to main content
@@ -168,14 +171,14 @@ export default function AppShell() {
       {/* Main content — admin routes get full remaining height with no overflow */}
       <main
         id="main-content"
-        className={`focus:outline-none ${location.pathname.startsWith('/admin') ? 'flex-1 overflow-hidden flex flex-col' : 'flex-1'}`}
+        className={`focus:outline-none ${isLockedAdmin ? 'flex-1 overflow-hidden flex flex-col' : 'flex-1'}`}
         tabIndex="-1"
       >
         <Outlet />
       </main>
 
       {/* Footer — hidden on admin routes so the dashboard fills the full viewport */}
-      {location.pathname.startsWith('/admin') ? null : <footer className="relative overflow-hidden bg-brand-navy-500 text-white mt-auto" style={{ backgroundColor: '#1A1A4E', color: 'white' }} role="contentinfo">
+      {isLockedAdmin ? null : <footer className="relative overflow-hidden bg-brand-navy-500 text-white mt-auto" style={{ backgroundColor: '#1A1A4E', color: 'white' }} role="contentinfo">
         {/* Decorative blob shapes */}
         <BlobShape
           variant={2}
