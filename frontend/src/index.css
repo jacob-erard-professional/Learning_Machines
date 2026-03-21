@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ihc-blue: #0066cc;
+    --ihc-teal: #00897b;
+    --ihc-amber: #f59e0b;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    margin: 0;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  /* Focus ring — visible for keyboard navigation (Principle I) */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-ihc-blue-500;
+  }
+}
+
+@layer components {
+  /* Skip-to-content link for screen readers */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50
+           focus:bg-ihc-blue-500 focus:text-white focus:px-4 focus:py-2 focus:rounded-md
+           focus:text-sm focus:font-medium;
+  }
+}

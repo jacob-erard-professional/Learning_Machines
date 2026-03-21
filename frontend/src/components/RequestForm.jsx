@@ -1,0 +1,730 @@
+/**
+ * @fileoverview Multi-section Community Health request submission form.
+ * Validates on blur, calls POST /api/requests, shows AI result on success.
+ * Handles duplicate detection, network errors, and AI unavailability.
+ */
+
+import { useState, useRef, useCallback } from 'react';
+import Button from './ui/Button.jsx';
+import Card from './ui/Card.jsx';
+import ConfirmationCard from './ConfirmationCard.jsx';
+import { apiPost } from '../lib/api.js';
+
+const TODAY = new Date().toISOString().split('T')[0];
+
+const INITIAL_FORM = {
+  requestorName: '',
+  requestorEmail: '',
+  requestorPhone: '',
+  alternateContactName: '',
+  alternateContactEmail: '',
+  eventName: '',
+  eventDate: '',
+  eventCity: '',
+  eventZip: '',
+  estimatedAttendees: '',
+  eventDescription: '',
+  requestType: '',
+  assetCategory: '',
+  materialPreferences: '',
+  specialInstructions: '',
+};
+
+const ASSET_CATEGORIES = [
+  { value: '', label: 'Select a category...' },
+  { value: 'materials', label: 'Materials' },
+  { value: 'toolkits', label: 'Toolkits' },
+  { value: 'behavioral_reinforcements', label: 'Behavioral Reinforcements' },
+  { value: 'programs', label: 'Programs' },
+];
+
+const REQUEST_TYPES = [
+  {
+    value: 'staff_support',
+    label: 'Staff Support',
+    description: 'Request IHC community health staff to attend and support your event in person.',
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+  {
+    value: 'mailed_materials',
+    label: 'Mailed Materials',
+    description: 'Receive health education materials, brochures, and toolkits shipped directly to your venue.',
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    value: 'pickup',
+    label: 'Pickup',
+    description: 'Pick up materials from your nearest IHC Community Health office at a scheduled time.',
+    icon: (
+      <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    ),
+  },
+];
+
+/** Validate a single field and return an error string or null. */
+function validateField(name, value) {
+  switch (name) {
+    case 'requestorName':
+      return value.trim() ? null : 'Full name is required.';
+    case 'requestorEmail':
+      if (!value.trim()) return 'Email address is required.';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Must be a valid email address.';
+      return null;
+    case 'requestorPhone':
+      return value.trim() ? null : 'Phone number is required.';
+    case 'eventName':
+      return value.trim() ? null : 'Event name is required.';
+    case 'eventDate':
+      if (!value) return 'Event date is required.';
+      if (value < TODAY) return 'Event date must be today or in the future.';
+      return null;
+    case 'eventCity':
+      return value.trim() ? null : 'City is required.';
+    case 'eventZip':
+      if (!value.trim()) return 'ZIP code is required.';
+      if (!/^\d{5}$/.test(value.trim())) return 'ZIP code must be exactly 5 digits.';
+      return null;
+    case 'requestType':
+      return value ? null : 'Please select a request type.';
+    default:
+      return null;
+  }
+}
+
+const REQUIRED_FIELDS = ['requestorName', 'requestorEmail', 'requestorPhone', 'eventName', 'eventDate', 'eventCity', 'eventZip', 'requestType'];
+
+/**
+ * Multi-section Community Health request form.
+ * Self-contained — uses internal state, submits via apiPost.
+ *
+ * @returns {JSX.Element}
+ */
+export default function RequestForm() {
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [assetOpen, setAssetOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [networkError, setNetworkError] = useState(null);
+  const [duplicateWarning, setDuplicateWarning] = useState(null);
+  const firstErrorRef = useRef(null);
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (touched[name]) {
+      const err = validateField(name, value);
+      setErrors((prev) => ({ ...prev, [name]: err }));
+    }
+  }
+
+  function handleBlur(e) {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const err = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: err }));
+  }
+
+  function selectRequestType(value) {
+    setForm((prev) => ({ ...prev, requestType: value }));
+    setTouched((prev) => ({ ...prev, requestType: true }));
+    setErrors((prev) => ({ ...prev, requestType: null }));
+  }
+
+  function validateAll() {
+    const newErrors = {};
+    for (const field of REQUIRED_FIELDS) {
+      const err = validateField(field, form[field]);
+      if (err) newErrors[field] = err;
+    }
+    setErrors(newErrors);
+    setTouched(Object.fromEntries(REQUIRED_FIELDS.map((f) => [f, true])));
+    return Object.keys(newErrors).length === 0;
+  }
+
+  async function submit(ignoreDuplicate = false) {
+    setNetworkError(null);
+    setLoading(true);
+
+    const payload = {
+      requestorName: form.requestorName.trim(),
+      requestorEmail: form.requestorEmail.trim(),
+      requestorPhone: form.requestorPhone.trim(),
+      alternateContactName: form.alternateContactName.trim() || undefined,
+      alternateContactEmail: form.alternateContactEmail.trim() || undefined,
+      eventName: form.eventName.trim(),
+      eventDate: form.eventDate,
+      eventCity: form.eventCity.trim(),
+      eventZip: form.eventZip.trim(),
+      estimatedAttendees: form.estimatedAttendees ? parseInt(form.estimatedAttendees, 10) : undefined,
+      eventDescription: form.eventDescription.trim() || undefined,
+      requestType: form.requestType,
+      assetCategory: form.assetCategory || undefined,
+      materialPreferences: form.materialPreferences
+        ? form.materialPreferences.split(',').map((s) => s.trim()).filter(Boolean)
+        : [],
+      specialInstructions: form.specialInstructions.trim() || undefined,
+      ...(ignoreDuplicate ? { ignoreDuplicate: true } : {}),
+    };
+
+    try {
+      const data = await apiPost('/api/requests', payload);
+      setResult(data);
+      setDuplicateWarning(null);
+    } catch (err) {
+      if (err.status === 409) {
+        setDuplicateWarning(err);
+      } else if (err.fields) {
+        // Server-side validation errors
+        setErrors((prev) => ({ ...prev, ...err.fields }));
+      } else {
+        setNetworkError(err.message || 'An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!validateAll()) {
+      // Focus first error
+      setTimeout(() => {
+        const firstError = document.querySelector('[aria-invalid="true"]');
+        firstError?.focus();
+      }, 50);
+      return;
+    }
+    await submit(false);
+  }
+
+  function handleReset() {
+    setForm(INITIAL_FORM);
+    setErrors({});
+    setTouched({});
+    setResult(null);
+    setNetworkError(null);
+    setDuplicateWarning(null);
+  }
+
+  if (result) {
+    return <ConfirmationCard result={result} onSubmitAnother={handleReset} />;
+  }
+
+  return (
+    <form onSubmit={handleSubmit} noValidate aria-label="Community Health Request Form">
+      <div className="space-y-6">
+
+        {/* Network error banner */}
+        {networkError && (
+          <div
+            className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-start gap-3"
+            role="alert"
+            aria-live="assertive"
+          >
+            <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800">Submission failed</p>
+              <p className="text-sm text-red-700 mt-0.5">{networkError}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => submit(false)}
+              className="text-sm font-medium text-red-700 underline hover:text-red-900 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 rounded"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Duplicate warning banner */}
+        {duplicateWarning && (
+          <div
+            className="bg-ihc-amber-100 border border-ihc-amber-300 rounded-lg px-4 py-3 flex items-start gap-3"
+            role="alert"
+            aria-live="polite"
+          >
+            <svg className="w-5 h-5 text-ihc-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-ihc-amber-800">Possible duplicate detected</p>
+              <p className="text-sm text-ihc-amber-700 mt-0.5">
+                {duplicateWarning.message || 'A similar request may already exist for this event.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => submit(true)}
+              className="text-sm font-medium text-ihc-amber-800 underline hover:text-ihc-amber-900 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-amber-500 rounded"
+            >
+              Submit anyway
+            </button>
+          </div>
+        )}
+
+        {/* Section 1: Requestor Info */}
+        <Card className="overflow-hidden">
+          <div className="bg-ihc-blue-500 px-6 py-3">
+            <h2 className="text-white font-semibold text-sm uppercase tracking-wider">
+              1. Requestor Information
+            </h2>
+          </div>
+          <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              id="requestorName"
+              label="Full Name"
+              required
+              error={errors.requestorName}
+              touched={touched.requestorName}
+            >
+              <input
+                id="requestorName"
+                name="requestorName"
+                type="text"
+                autoComplete="name"
+                value={form.requestorName}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                aria-required="true"
+                aria-invalid={touched.requestorName && !!errors.requestorName}
+                aria-describedby={errors.requestorName && touched.requestorName ? 'requestorName-error' : undefined}
+                className={inputClasses(touched.requestorName && !!errors.requestorName)}
+                placeholder="Jane Smith"
+              />
+            </FormField>
+
+            <FormField
+              id="requestorEmail"
+              label="Email Address"
+              required
+              error={errors.requestorEmail}
+              touched={touched.requestorEmail}
+            >
+              <input
+                id="requestorEmail"
+                name="requestorEmail"
+                type="email"
+                autoComplete="email"
+                value={form.requestorEmail}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                aria-required="true"
+                aria-invalid={touched.requestorEmail && !!errors.requestorEmail}
+                aria-describedby={errors.requestorEmail && touched.requestorEmail ? 'requestorEmail-error' : undefined}
+                className={inputClasses(touched.requestorEmail && !!errors.requestorEmail)}
+                placeholder="jane@organization.org"
+              />
+            </FormField>
+
+            <FormField
+              id="requestorPhone"
+              label="Phone Number"
+              required
+              error={errors.requestorPhone}
+              touched={touched.requestorPhone}
+            >
+              <input
+                id="requestorPhone"
+                name="requestorPhone"
+                type="tel"
+                autoComplete="tel"
+                value={form.requestorPhone}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                aria-required="true"
+                aria-invalid={touched.requestorPhone && !!errors.requestorPhone}
+                aria-describedby={errors.requestorPhone && touched.requestorPhone ? 'requestorPhone-error' : undefined}
+                className={inputClasses(touched.requestorPhone && !!errors.requestorPhone)}
+                placeholder="801-555-0100"
+              />
+            </FormField>
+
+            <div /> {/* spacer */}
+
+            <FormField id="alternateContactName" label="Alternate Contact Name">
+              <input
+                id="alternateContactName"
+                name="alternateContactName"
+                type="text"
+                autoComplete="name"
+                value={form.alternateContactName}
+                onChange={handleChange}
+                className={inputClasses(false)}
+                placeholder="Optional"
+              />
+            </FormField>
+
+            <FormField id="alternateContactEmail" label="Alternate Contact Email">
+              <input
+                id="alternateContactEmail"
+                name="alternateContactEmail"
+                type="email"
+                autoComplete="email"
+                value={form.alternateContactEmail}
+                onChange={handleChange}
+                className={inputClasses(false)}
+                placeholder="Optional"
+              />
+            </FormField>
+          </div>
+        </Card>
+
+        {/* Section 2: Event Details */}
+        <Card className="overflow-hidden">
+          <div className="bg-ihc-teal-500 px-6 py-3">
+            <h2 className="text-white font-semibold text-sm uppercase tracking-wider">
+              2. Event Details
+            </h2>
+          </div>
+          <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              id="eventName"
+              label="Event Name"
+              required
+              error={errors.eventName}
+              touched={touched.eventName}
+              className="sm:col-span-2"
+            >
+              <input
+                id="eventName"
+                name="eventName"
+                type="text"
+                value={form.eventName}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                aria-required="true"
+                aria-invalid={touched.eventName && !!errors.eventName}
+                aria-describedby={errors.eventName && touched.eventName ? 'eventName-error' : undefined}
+                className={inputClasses(touched.eventName && !!errors.eventName)}
+                placeholder="Senior Health Fair"
+              />
+            </FormField>
+
+            <FormField
+              id="eventDate"
+              label="Event Date"
+              required
+              error={errors.eventDate}
+              touched={touched.eventDate}
+            >
+              <input
+                id="eventDate"
+                name="eventDate"
+                type="date"
+                min={TODAY}
+                value={form.eventDate}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                aria-required="true"
+                aria-invalid={touched.eventDate && !!errors.eventDate}
+                aria-describedby={errors.eventDate && touched.eventDate ? 'eventDate-error' : undefined}
+                className={inputClasses(touched.eventDate && !!errors.eventDate)}
+              />
+            </FormField>
+
+            <FormField id="estimatedAttendees" label="Estimated Attendees">
+              <input
+                id="estimatedAttendees"
+                name="estimatedAttendees"
+                type="number"
+                min="1"
+                max="100000"
+                value={form.estimatedAttendees}
+                onChange={handleChange}
+                className={inputClasses(false)}
+                placeholder="e.g. 100"
+              />
+            </FormField>
+
+            <FormField
+              id="eventCity"
+              label="City"
+              required
+              error={errors.eventCity}
+              touched={touched.eventCity}
+            >
+              <input
+                id="eventCity"
+                name="eventCity"
+                type="text"
+                value={form.eventCity}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                aria-required="true"
+                aria-invalid={touched.eventCity && !!errors.eventCity}
+                aria-describedby={errors.eventCity && touched.eventCity ? 'eventCity-error' : undefined}
+                className={inputClasses(touched.eventCity && !!errors.eventCity)}
+                placeholder="Salt Lake City"
+              />
+            </FormField>
+
+            <FormField
+              id="eventZip"
+              label="ZIP Code"
+              required
+              error={errors.eventZip}
+              touched={touched.eventZip}
+            >
+              <input
+                id="eventZip"
+                name="eventZip"
+                type="text"
+                inputMode="numeric"
+                pattern="\d{5}"
+                maxLength={5}
+                value={form.eventZip}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                aria-required="true"
+                aria-invalid={touched.eventZip && !!errors.eventZip}
+                aria-describedby={errors.eventZip && touched.eventZip ? 'eventZip-error' : undefined}
+                className={inputClasses(touched.eventZip && !!errors.eventZip)}
+                placeholder="84101"
+              />
+            </FormField>
+
+            <FormField
+              id="eventDescription"
+              label="Event Description"
+              hint="AI will use this to help categorize and route your request."
+              className="sm:col-span-2"
+            >
+              <textarea
+                id="eventDescription"
+                name="eventDescription"
+                rows={3}
+                value={form.eventDescription}
+                onChange={handleChange}
+                aria-describedby="eventDescription-hint"
+                className={`${inputClasses(false)} resize-y`}
+                placeholder="Describe your event and what health topics will be covered..."
+              />
+            </FormField>
+          </div>
+        </Card>
+
+        {/* Section 3: Request Type */}
+        <Card className="overflow-hidden">
+          <div className="bg-ihc-blue-700 px-6 py-3">
+            <h2 className="text-white font-semibold text-sm uppercase tracking-wider">
+              3. Request Type <span className="font-normal normal-case tracking-normal text-ihc-blue-200">(required)</span>
+            </h2>
+          </div>
+          <div className="px-6 py-5">
+            {touched.requestType && errors.requestType && (
+              <div id="requestType-error" className="mb-4 text-sm text-red-600 flex items-center gap-1.5" role="alert">
+                <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                </svg>
+                {errors.requestType}
+              </div>
+            )}
+            <div
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+              role="radiogroup"
+              aria-label="Request Type"
+              aria-required="true"
+            >
+              {REQUEST_TYPES.map((type) => {
+                const isSelected = form.requestType === type.value;
+                return (
+                  <button
+                    key={type.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => selectRequestType(type.value)}
+                    className={[
+                      'relative flex flex-col items-start gap-3 p-4 rounded-xl border-2 text-left transition-all duration-150',
+                      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500',
+                      isSelected
+                        ? 'border-ihc-blue-500 bg-ihc-blue-50 shadow-card-hover'
+                        : 'border-gray-200 bg-white hover:border-ihc-blue-300 hover:bg-ihc-blue-50/40',
+                    ].join(' ')}
+                  >
+                    <div
+                      className={`p-2 rounded-lg ${isSelected ? 'bg-ihc-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                      aria-hidden="true"
+                    >
+                      {type.icon}
+                    </div>
+                    <div>
+                      <p className={`font-semibold text-sm ${isSelected ? 'text-ihc-blue-700' : 'text-gray-900'}`}>
+                        {type.label}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{type.description}</p>
+                    </div>
+                    {isSelected && (
+                      <span className="absolute top-3 right-3 text-ihc-blue-500" aria-hidden="true">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </Card>
+
+        {/* Section 4: Asset Preferences (collapsible) */}
+        <Card className="overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setAssetOpen((prev) => !prev)}
+            className="w-full flex items-center justify-between bg-gray-50 px-6 py-3 hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ihc-blue-500 rounded-t-xl"
+            aria-expanded={assetOpen}
+            aria-controls="asset-preferences-section"
+          >
+            <h2 className="text-gray-700 font-semibold text-sm uppercase tracking-wider">
+              4. Asset Preferences <span className="font-normal normal-case tracking-normal text-gray-400">(optional)</span>
+            </h2>
+            <svg
+              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${assetOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {assetOpen && (
+            <div id="asset-preferences-section" className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100">
+              <FormField id="assetCategory" label="Asset Category">
+                <select
+                  id="assetCategory"
+                  name="assetCategory"
+                  value={form.assetCategory}
+                  onChange={handleChange}
+                  className={inputClasses(false)}
+                >
+                  {ASSET_CATEGORIES.map((cat) => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
+                </select>
+              </FormField>
+
+              <div /> {/* spacer */}
+
+              <FormField
+                id="materialPreferences"
+                label="Material Preferences"
+                hint="Comma-separated list of specific items requested."
+                className="sm:col-span-2"
+              >
+                <textarea
+                  id="materialPreferences"
+                  name="materialPreferences"
+                  rows={2}
+                  value={form.materialPreferences}
+                  onChange={handleChange}
+                  aria-describedby="materialPreferences-hint"
+                  className={`${inputClasses(false)} resize-y`}
+                  placeholder="blood pressure cuffs, pamphlets, stress balls"
+                />
+              </FormField>
+
+              <FormField
+                id="specialInstructions"
+                label="Special Instructions"
+                className="sm:col-span-2"
+              >
+                <textarea
+                  id="specialInstructions"
+                  name="specialInstructions"
+                  rows={2}
+                  value={form.specialInstructions}
+                  onChange={handleChange}
+                  className={`${inputClasses(false)} resize-y`}
+                  placeholder="Any additional notes for the community health team..."
+                />
+              </FormField>
+            </div>
+          )}
+        </Card>
+
+        {/* Submit */}
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            loading={loading}
+            ariaLabel="Submit Community Health Request"
+          >
+            Submit Request
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+/** Tailwind input classes based on error state */
+function inputClasses(hasError) {
+  return [
+    'block w-full rounded-lg border px-3 py-2 text-sm text-gray-900',
+    'bg-white placeholder:text-gray-400',
+    'focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-ihc-blue-500 focus:border-ihc-blue-500',
+    'transition-colors duration-100',
+    hasError
+      ? 'border-red-400 focus:border-red-500 focus:ring-red-500 bg-red-50'
+      : 'border-gray-300 hover:border-gray-400',
+  ].join(' ');
+}
+
+/**
+ * Reusable form field wrapper with label, hint, and error display.
+ *
+ * @param {object} props
+ * @param {string} props.id - Input ID (also used for error/hint IDs)
+ * @param {string} props.label - Label text
+ * @param {boolean} [props.required] - Shows * and aria-required
+ * @param {string|null} [props.error] - Error message
+ * @param {boolean} [props.touched] - Whether field has been blurred
+ * @param {string} [props.hint] - Helper text below input
+ * @param {string} [props.className] - Additional wrapper CSS
+ * @param {React.ReactNode} props.children - The input element
+ */
+function FormField({ id, label, required, error, touched, hint, className = '', children }) {
+  const showError = touched && !!error;
+  return (
+    <div className={className}>
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+        {required && <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>}
+      </label>
+      {children}
+      {hint && (
+        <p id={`${id}-hint`} className="mt-1 text-xs text-gray-500">
+          {hint}
+        </p>
+      )}
+      {showError && (
+        <p id={`${id}-error`} className="mt-1 text-xs text-red-600 flex items-center gap-1" role="alert">
+          <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+          </svg>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
