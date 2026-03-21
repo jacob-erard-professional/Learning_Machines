@@ -5,6 +5,8 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppShell from './components/AppShell.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import LoginPage from './pages/LoginPage.jsx';
 import SubmitPage from './pages/SubmitPage.jsx';
 import ChatIntakePage from './pages/ChatIntakePage.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
@@ -28,16 +30,22 @@ import SimulationPage from './pages/SimulationPage.jsx';
 export default function App() {
   return (
     <Routes>
+      {/* Login: outside AppShell, no nav chrome */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Main app shell wraps all authenticated routes */}
       <Route element={<AppShell />}>
-        {/* Requestor-facing routes */}
+        {/* Requestor-facing routes (guest + admin) */}
         <Route path="/" element={<SubmitPage />} />
         <Route path="/chat" element={<ChatIntakePage />} />
 
-        {/* Admin routes */}
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/geo" element={<GeoEquityView />} />
-        <Route path="/admin/analytics" element={<AnalyticsDashboard />} />
-        <Route path="/admin/simulate" element={<SimulationPage />} />
+        {/* Admin-only routes — redirect to /login if not admin */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/geo" element={<GeoEquityView />} />
+          <Route path="/admin/analytics" element={<AnalyticsDashboard />} />
+          <Route path="/admin/simulate" element={<SimulationPage />} />
+        </Route>
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

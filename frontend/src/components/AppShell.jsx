@@ -4,14 +4,21 @@
  */
 
 import { useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import useAuth from '../hooks/useAuth.js';
 
-/** Navigation items for the main app navigation */
-const NAV_ITEMS = [
+/** Navigation items for community members (guest role) */
+const GUEST_NAV = [
   { label: 'Submit Request', to: '/', end: true },
   { label: 'Chat Intake', to: '/chat' },
+];
+
+/** Navigation items for admins */
+const ADMIN_NAV = [
   { label: 'Admin Dashboard', to: '/admin', end: true },
   { label: 'Analytics', to: '/admin/analytics' },
+  { label: 'Geo Equity', to: '/admin/geo' },
+  { label: 'Simulation', to: '/admin/simulate' },
 ];
 
 /**
@@ -24,6 +31,20 @@ const NAV_ITEMS = [
 export default function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { role, logout } = useAuth();
+
+  // Redirect unauthenticated users to login
+  if (role === null) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const navItems = role === 'admin' ? ADMIN_NAV : GUEST_NAV;
+
+  function handleLogout() {
+    logout();
+    navigate('/login', { replace: true });
+  }
 
   // Close mobile menu on route change
   useState(() => {
@@ -68,7 +89,7 @@ export default function AppShell() {
               className="hidden md:flex items-center gap-1"
               aria-label="Main navigation"
             >
-              {NAV_ITEMS.map((item) => (
+              {navItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -86,6 +107,13 @@ export default function AppShell() {
                   {item.label}
                 </NavLink>
               ))}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="ml-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 text-ihc-blue-100 hover:bg-ihc-blue-600 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                Sign Out
+              </button>
             </nav>
 
             {/* Mobile hamburger */}
@@ -122,7 +150,7 @@ export default function AppShell() {
             className="md:hidden border-t border-ihc-blue-600 bg-ihc-blue-500 px-4 pb-3 pt-2"
             aria-label="Mobile navigation"
           >
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -141,6 +169,13 @@ export default function AppShell() {
                 {item.label}
               </NavLink>
             ))}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium mt-1 transition-colors text-ihc-blue-100 hover:bg-ihc-blue-600 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Sign Out
+            </button>
           </nav>
         )}
       </header>
