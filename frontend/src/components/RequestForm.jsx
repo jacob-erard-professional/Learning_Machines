@@ -26,7 +26,7 @@ const INITIAL_FORM = {
   eventZip: '',
   estimatedAttendees: '',
   eventDescription: '',
-  requestType: '',
+  requestTypes: [],
   assetCategory: '',
   materialPreferences: '',
   specialInstructions: '',
@@ -109,6 +109,7 @@ function normalizeVoiceFields(extractedFields) {
       : digits;
   }
 
+  // Voice extracts a single requestType string — convert to requestTypes array
   if (normalized.requestType) {
     const requestTypeMap = {
       'staff support': 'staff_support',
@@ -120,7 +121,9 @@ function normalizeVoiceFields(extractedFields) {
       'pick up': 'pickup',
     };
     const key = String(normalized.requestType).trim().toLowerCase();
-    normalized.requestType = requestTypeMap[key] ?? normalized.requestType;
+    const mapped = requestTypeMap[key] ?? normalized.requestType;
+    normalized.requestTypes = [mapped];
+    delete normalized.requestType;
   }
 
   return normalized;
@@ -180,14 +183,14 @@ function validateField(name, value) {
       if (!value.trim()) return 'ZIP code is required.';
       if (!ZIP_REGEX.test(value.trim())) return 'Must be a 5-digit ZIP (84101) or ZIP+4 (84101-1234).';
       return null;
-    case 'requestType':
-      return value ? null : 'Please select a request type.';
+    case 'requestTypes':
+      return Array.isArray(value) && value.length > 0 ? null : 'Please select at least one request type.';
     default:
       return null;
   }
 }
 
-const REQUIRED_FIELDS = ['requestorName', 'requestorEmail', 'requestorPhone', 'eventName', 'eventDate', 'eventCity', 'eventZip', 'requestType'];
+const REQUIRED_FIELDS = ['requestorName', 'requestorEmail', 'requestorPhone', 'eventName', 'eventDate', 'eventCity', 'eventZip', 'requestTypes'];
 
 /**
  * Multi-section Community Health request form.
@@ -247,10 +250,16 @@ export default function RequestForm() {
     setErrors((prev) => ({ ...prev, [name]: err }));
   }
 
-  function selectRequestType(value) {
-    setForm((prev) => ({ ...prev, requestType: value }));
-    setTouched((prev) => ({ ...prev, requestType: true }));
-    setErrors((prev) => ({ ...prev, requestType: null }));
+  function toggleRequestType(value) {
+    setForm((prev) => {
+      const current = prev.requestTypes;
+      const next = current.includes(value)
+        ? current.filter((t) => t !== value)
+        : [...current, value];
+      return { ...prev, requestTypes: next };
+    });
+    setTouched((prev) => ({ ...prev, requestTypes: true }));
+    setErrors((prev) => ({ ...prev, requestTypes: null }));
   }
 
   function validateAll() {
@@ -281,7 +290,7 @@ export default function RequestForm() {
       eventZip: form.eventZip.trim(),
       estimatedAttendees: form.estimatedAttendees ? parseInt(form.estimatedAttendees, 10) : undefined,
       eventDescription: form.eventDescription.trim() || undefined,
-      requestType: form.requestType,
+      requestTypes: form.requestTypes,
       assetCategory: form.assetCategory || undefined,
       materialPreferences: form.materialPreferences
         ? form.materialPreferences.split(',').map((s) => s.trim()).filter(Boolean)
@@ -692,33 +701,34 @@ export default function RequestForm() {
         <Card className="overflow-hidden">
           <div className="bg-brand-navy-600 px-6 py-3">
             <h2 className="text-white font-semibold text-sm uppercase tracking-wider">
-              3. Request Type <span className="font-normal normal-case tracking-normal text-brand-periwinkle-200">(required)</span>
+              3. Request Type <span className="font-normal normal-case tracking-normal text-brand-periwinkle-200">(required — select all that apply)</span>
             </h2>
           </div>
           <div className="px-6 py-5">
-            {touched.requestType && errors.requestType && (
-              <div id="requestType-error" className="mb-4 text-sm text-red-600 flex items-center gap-1.5" role="alert">
+            {touched.requestTypes && errors.requestTypes && (
+              <div id="requestTypes-error" className="mb-4 text-sm text-red-600 flex items-center gap-1.5" role="alert">
                 <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                 </svg>
-                {errors.requestType}
+                {errors.requestTypes}
               </div>
             )}
             <div
               className="grid grid-cols-1 sm:grid-cols-3 gap-4"
-              role="radiogroup"
-              aria-label="Request Type"
+              role="group"
+              aria-label="Request Type — select all that apply"
               aria-required="true"
+              aria-describedby={touched.requestTypes && errors.requestTypes ? 'requestTypes-error' : undefined}
             >
               {REQUEST_TYPES.map((type) => {
-                const isSelected = form.requestType === type.value;
+                const isSelected = form.requestTypes.includes(type.value);
                 return (
                   <button
                     key={type.value}
                     type="button"
-                    role="radio"
+                    role="checkbox"
                     aria-checked={isSelected}
-                    onClick={() => selectRequestType(type.value)}
+                    onClick={() => toggleRequestType(type.value)}
                     className={[
                       'relative flex flex-col items-start gap-3 p-4 rounded-xl border-2 text-left transition-all duration-150',
                       'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500',

@@ -331,6 +331,38 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
 
               {/* Routing section */}
               <Section title="Routing & Classification">
+                {/* Request types — read-only display of what the requestor selected */}
+                {(() => {
+                  const types = request.requestTypes ?? (request.requestType ? [request.requestType] : []);
+                  if (types.length === 0) return null;
+                  const TYPE_LABELS = {
+                    staff_support: 'Staff Support',
+                    mailed_materials: 'Mailed Materials',
+                    pickup: 'Pickup',
+                  };
+                  const TYPE_COLORS = {
+                    staff_support: 'bg-brand-periwinkle-100 text-brand-navy-500 border border-brand-periwinkle-200',
+                    mailed_materials: 'bg-teal-50 text-teal-700 border border-teal-200',
+                    pickup: 'bg-brand-yellow-100 text-brand-yellow-700 border border-brand-yellow-300',
+                  };
+                  return (
+                    <div>
+                      <p className="block text-xs font-medium text-gray-500 mb-1.5">Requested Types</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {types.map((t) => (
+                          <span key={t} className={`text-xs px-2.5 py-1 rounded-full font-medium ${TYPE_COLORS[t] ?? 'bg-gray-100 text-gray-700'}`}>
+                            {TYPE_LABELS[t] ?? t}
+                          </span>
+                        ))}
+                      </div>
+                      {types.length > 1 && (
+                        <p className="mt-1.5 text-xs text-brand-yellow-700 bg-brand-yellow-100 border border-brand-yellow-300 rounded-md px-2.5 py-1.5">
+                          Multi-fulfillment request — primary route below, all types must be actioned.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
                 <div>
                   <label htmlFor="detail-route" className="block text-xs font-medium text-gray-500 mb-1">Fulfillment Route</label>
                   <select

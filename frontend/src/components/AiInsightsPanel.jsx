@@ -183,27 +183,77 @@ export default function AiInsightsPanel({ request }) {
         </div>
       )}
 
-      {/* Planning recommendations placeholder */}
+      {/* Planning recommendations */}
       <div>
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Planning Recommendations</h3>
-        <ul className="space-y-1.5 text-sm text-gray-600">
-          <li className="flex items-start gap-2">
-            <span className="text-brand-purple-500 mt-0.5" aria-hidden="true">•</span>
-            Confirm materials availability 2 weeks before event date.
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-brand-purple-500 mt-0.5" aria-hidden="true">•</span>
-            {request.estimatedAttendees > 100
-              ? 'High attendance — consider requesting additional staff support.'
-              : 'Standard staffing levels should be sufficient.'}
-          </li>
-          {request.requestType === 'staff_support' && (
-            <li className="flex items-start gap-2">
-              <span className="text-brand-purple-500 mt-0.5" aria-hidden="true">•</span>
-              Generate calendar invite after approval to block staff schedules.
-            </li>
-          )}
-        </ul>
+
+        {/* AI-generated materials list */}
+        {request.planningRecommendedMaterials?.length > 0 && (
+          <div className="mb-3 bg-brand-periwinkle-50 border border-brand-periwinkle-200 rounded-lg px-4 py-3">
+            <p className="text-xs font-semibold text-brand-navy-500 mb-1.5">Materials to Prepare</p>
+            <ul className="space-y-1">
+              {request.planningRecommendedMaterials.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
+                  <span className="text-brand-purple-400 mt-0.5 shrink-0" aria-hidden="true">–</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* AI staffing count */}
+        {request.planningStaffingCount > 0 && (
+          <div className="mb-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 flex items-center gap-3">
+            <svg className="w-4 h-4 text-brand-purple-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="text-sm text-gray-700">
+              <span className="font-semibold text-gray-900">{request.planningStaffingCount}</span> staff member{request.planningStaffingCount !== 1 ? 's' : ''} recommended
+            </span>
+          </div>
+        )}
+
+        {/* AI logistics notes */}
+        {request.planningLogisticsNotes && (
+          <p className="mb-3 text-sm text-gray-600 italic bg-gray-50 rounded-lg px-4 py-2.5 border border-gray-100">
+            {request.planningLogisticsNotes}
+          </p>
+        )}
+
+        {/* Dynamic bullets based on request types */}
+        {(() => {
+          const types = request.requestTypes ?? (request.requestType ? [request.requestType] : []);
+          const bullets = [];
+
+          if (types.includes('staff_support')) {
+            bullets.push('Generate calendar invite after approval to block staff schedules.');
+          }
+          if (types.includes('mailed_materials')) {
+            bullets.push('Prepare and ship materials package to the event address before the event date.');
+          }
+          if (types.includes('pickup')) {
+            bullets.push('Stage pickup order at nearest Community Health office and notify requestor of pickup window.');
+          }
+          if (types.length > 1) {
+            bullets.push('Multi-fulfillment request — coordinate all fulfillment actions before approving.');
+          }
+          if (request.estimatedAttendees > 100) {
+            bullets.push('High attendance — scale materials quantity and staff count accordingly.');
+          }
+
+          if (bullets.length === 0) return null;
+          return (
+            <ul className="space-y-1.5 text-sm text-gray-600">
+              {bullets.map((b) => (
+                <li key={b} className="flex items-start gap-2">
+                  <span className="text-brand-purple-500 mt-0.5 shrink-0" aria-hidden="true">•</span>
+                  {b}
+                </li>
+              ))}
+            </ul>
+          );
+        })()}
       </div>
     </div>
   );
