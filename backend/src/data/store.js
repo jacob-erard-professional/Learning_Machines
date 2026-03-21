@@ -275,6 +275,7 @@ export async function refreshStoreFromSource() {
   requests = state.requests;
   adminOverrides = state.adminOverrides;
   staff = await loadStaffFromGoogleSheets();
+  console.log(`[store] Refreshed ${staff.length} staff members from Sheets`);
 
   return {
     source: 'google_sheets',

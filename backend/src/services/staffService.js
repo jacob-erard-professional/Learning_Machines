@@ -26,17 +26,22 @@ function getDayName(eventDate) {
  * Returns staff who are active, available on the event's weekday,
  * and not already assigned to another approved request on that same date.
  *
+ * Only `approved` requests are checked for conflicts — pending/review requests
+ * have not yet committed any staff. `countAssignments` uses a broader set
+ * (all non-rejected) to distribute workload evenly across the roster.
+ *
  * @param {string} eventDate - ISO date string (YYYY-MM-DD)
+ * @param {Array<Object>} [allRequests] - Pre-fetched requests (avoids duplicate store read)
  * @returns {Array<Object>} Free staff members
  */
-export function getAvailableStaff(eventDate) {
+export function getAvailableStaff(eventDate, allRequests) {
   const dayName = getDayName(eventDate);
-  const allStaff = getStaff();
-  const allRequests = getAllRequests();
+  const staffList = getStaff();
+  const requests = allRequests ?? getAllRequests();
 
   // Collect staffIds already committed to approved requests on this exact date
   const busyStaffIds = new Set();
-  for (const req of allRequests) {
+  for (const req of requests) {
     if (req.status === 'approved' && req.eventDate === eventDate && Array.isArray(req.assignedStaff)) {
       for (const s of req.assignedStaff) {
         if (s.staffId) busyStaffIds.add(s.staffId);
@@ -44,7 +49,7 @@ export function getAvailableStaff(eventDate) {
     }
   }
 
-  return allStaff.filter(
+  return staffList.filter(
     (s) => s.active && s.availableWeekdays.includes(dayName) && !busyStaffIds.has(s.staffId)
   );
 }
@@ -92,8 +97,8 @@ function countAssignments(staffId, allRequests) {
  * @returns {Array<{ staffId: string, name: string, email: string, role: string }>}
  */
 export function assignStaffToRequest(requestId, eventDate, needed) {
-  const free = getAvailableStaff(eventDate);
   const allRequests = getAllRequests();
+  const free = getAvailableStaff(eventDate, allRequests);
 
   const sorted = [...free].sort(
     (a, b) => countAssignments(a.staffId, allRequests) - countAssignments(b.staffId, allRequests)
