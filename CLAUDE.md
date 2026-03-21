@@ -2,15 +2,62 @@
 
 ## Project Overview
 
-We are building a web application for Intermountain Healthcare in a 6-hour hackathon. The problem statement will be inserted below on the day of the competition.
+We are building an AI-enabled web application for Intermountain Healthcare's Community Health team to modernize their ordering and event support workflow. This replaces a manual, email-based process with a real-time, data-driven operational platform.
 
 ---
 
 ## 🏥 Business Case
 
-> **[INSERT PROBLEM STATEMENT HERE ON THE DAY OF THE COMPETITION]**
->
-> _Paste the full business case text here before starting work. Include any constraints, target users, success criteria, and any data or APIs provided._
+**Problem:** Intermountain Healthcare's Community Health team processes event support and material ordering requests manually via email. This creates bottlenecks, inconsistent routing, and no visibility into demand trends or staffing needs.
+
+**Solution:** A modern web app that:
+- Accepts structured requests through a web form
+- Automatically classifies and routes requests (staffed event vs. mailed materials)
+- Uses AI/NLP to interpret free-text descriptions and auto-tag requests
+- Gives admins a searchable dashboard for planning, fulfillment, and reporting
+- Visualizes demand trends, upcoming events, and staffing equity by geography
+
+**Target Users:**
+- **Requestors** — community members or event organizers submitting requests
+- **Admins** — Community Health staff who fulfill, manage, and track requests
+
+**Core Features (Required):**
+1. Request submission form with required + optional fields
+2. Intelligent routing logic (staff deployment vs. mail vs. pickup)
+3. Geographic/zip code logic for staffing equity and service area determination
+4. Admin dashboard with search, filtering, manual editing, and reporting
+5. AI-assisted validation, tagging, and fulfillment recommendations
+6. Calendar event creation when a staffed event is approved
+
+**Required Form Fields:**
+- Requestor name and contact info (email/phone)
+- Event or program name
+- Event date
+- Event location (city/zip code)
+- Type of request (staff support vs. mailed materials)
+
+**Optional Form Fields:**
+- Additional notes / special instructions
+- Alternate contact information
+- Estimated attendee count
+- Specific material or toolkit preferences
+
+**Fulfillment Pathways:**
+- Staff attends event in-person (education + material distribution)
+- Materials mailed to requestor for self-facilitated events
+- Materials prepared for requestor pickup
+
+**Asset Categories to Organize:**
+- Materials
+- Toolkits
+- Behavioral reinforcements
+- Programs
+
+**Geographic Staffing Logic:**
+- Flag events within service area → eligible for staff deployment
+- Events outside service area → route to mail fulfillment
+- High-attendance or high-priority events → flag for admin review
+- Zip code analysis to ensure equitable geographic staffing
 
 ---
 
@@ -32,11 +79,12 @@ Avoid over-engineering. Prefer solutions that ship fast and look polished.
 We work on **feature branches** and merge into `main` only when stable.
 
 ```
-main          ← stable, demo-ready at all times
+main                      ← stable, demo-ready at all times
 ├── feat/ui-shell         ← layout, nav, design system
-├── feat/core-feature-1   ← [rename to match problem]
-├── feat/core-feature-2   ← [rename to match problem]
-└── feat/data-integration ← API calls, mock data, backend
+├── feat/request-form     ← submission form, validation, AI tagging
+├── feat/routing-logic    ← fulfillment routing, geo/zip logic
+├── feat/admin-dashboard  ← search, filter, edit, reporting views
+└── feat/data-integration ← API calls, mock data, Claude AI integration
 ```
 
 **Rules:**
@@ -183,3 +231,11 @@ The site will be hosted on [Render](https://render.com). Keep the following in m
 - We are building for **healthcare users** — prioritize clarity, accessibility (a11y), and trust
 - If generating UI, match the Intermountain Healthcare aesthetic: clean, professional, warm
 - When working on a branch, **stay focused on that branch's concern** — don't refactor unrelated code
+
+**Domain-specific guidance:**
+- Fulfillment routing is binary at its core: staff deployment or mail/pickup — build the logic to be clear and auditable
+- Zip code data drives staffing equity decisions — make geo logic easy to tune (e.g., a configurable service area radius or list of covered zip codes)
+- Admins need to manually override any AI decision — never make routing final without an edit path
+- NLP/AI features (tagging, validation, NLP for free-text) should use the Claude API — keep AI calls in `src/lib/ai.js` (or similar) so they're easy to mock during development
+- The calendar invite feature (for approved staffed events) should be a discrete, triggerable action — not automatic on submission
+- Mock data should represent realistic Community Health scenarios: health fairs, screenings, school events, farmer's markets, etc.
