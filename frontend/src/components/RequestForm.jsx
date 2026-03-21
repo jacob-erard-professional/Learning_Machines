@@ -81,6 +81,14 @@ const PHONE_REGEX = /^\+?1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
 // ZIP: 5-digit (84101) or ZIP+4 (84101-1234)
 const ZIP_REGEX = /^\d{5}(-\d{4})?$/;
 
+/** Format raw digits into (XXX) XXX-XXXX as the user types. */
+function formatPhone(raw) {
+  const digits = raw.replace(/\D/g, '').slice(0, 10);
+  if (digits.length < 4) return digits;
+  if (digits.length < 7) return '(' + digits.slice(0, 3) + ') ' + digits.slice(3);
+  return '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
+}
+
 /** Validate a single field and return an error string or null. */
 function validateField(name, value) {
   switch (name) {
@@ -96,7 +104,7 @@ function validateField(name, value) {
       return null;
     case 'requestorPhone':
       if (!value.trim()) return 'Phone number is required.';
-      if (!PHONE_REGEX.test(value.trim())) return 'Must be a valid US phone number (e.g. 801-555-0100).';
+      if (!PHONE_REGEX.test(value.trim())) return 'Must be a valid US phone number (e.g. (801) 555-0100).';
       return null;
     case 'eventName':
       return value.trim() ? null : 'Event name is required.';
@@ -137,7 +145,8 @@ export default function RequestForm() {
   const firstErrorRef = useRef(null);
 
   function handleChange(e) {
-    const { name, value } = e.target;
+    const { name } = e.target;
+    const value = name === 'requestorPhone' ? formatPhone(e.target.value) : e.target.value;
     setForm((prev) => ({ ...prev, [name]: value }));
     if (touched[name]) {
       const err = validateField(name, value);
@@ -365,7 +374,8 @@ export default function RequestForm() {
                 aria-invalid={touched.requestorPhone && !!errors.requestorPhone}
                 aria-describedby={errors.requestorPhone && touched.requestorPhone ? 'requestorPhone-error' : undefined}
                 className={inputClasses(touched.requestorPhone && !!errors.requestorPhone)}
-                placeholder="801-555-0100"
+                placeholder="(801) 555-0100"
+                maxLength={14}
               />
             </FormField>
 

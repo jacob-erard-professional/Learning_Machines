@@ -250,7 +250,7 @@ describe('RequestForm', () => {
         expect(apiPost).toHaveBeenCalledWith('/api/requests', expect.objectContaining({
           requestorName: 'Jane Smith',
           requestorEmail: 'jane@test.com',
-          requestorPhone: '801-555-0100',
+          requestorPhone: '(801) 555-0100',
           eventName: 'Senior Health Fair',
           eventDate: futureDateStr,
           eventCity: 'Salt Lake City',
