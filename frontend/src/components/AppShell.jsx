@@ -54,7 +54,7 @@ export default function AppShell() {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className={`bg-gray-50 flex flex-col ${location.pathname.startsWith('/admin') ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       {/* Skip to content — screen reader and keyboard accessible */}
       <a href="#main-content" className="skip-link">
         Skip to main content
