@@ -102,7 +102,7 @@ export default function TicketQueue() {
       )}
 
       {/* Scrollable list */}
-      <div className="flex-1 overflow-y-auto pb-24" role="list" aria-label="Request queue" aria-live="polite" aria-busy={loading}>
+      <div className="flex-1 overflow-y-auto" role="list" aria-label="Request queue" aria-live="polite" aria-busy={loading}>
         {/* Loading skeleton */}
         {loading && requests.length === 0 && (
           <>

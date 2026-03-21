@@ -61,7 +61,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - 64px - 52px)' }}>
+    <div className="flex flex-col h-full">
       {/* ICH Hero Banner */}
       <div className="relative overflow-hidden bg-brand-navy-500 py-10 px-6 shrink-0" style={{ backgroundColor: '#1A1A4E' }}>
         <BlobShape variant={4} color="#F5C518" className="absolute blob-float" style={{ width: '180px', height: '180px', top: '-40px', right: '5%', opacity: 0.25, pointerEvents: 'none' }} />
