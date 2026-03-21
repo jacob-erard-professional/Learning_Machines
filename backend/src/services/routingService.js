@@ -16,13 +16,13 @@ import { isInServiceArea } from '../data/serviceAreaZips.js';
  * Determines the fulfillment route for a community health request.
  * Also computes priority and urgency to pre-populate admin triage.
  *
- * Routing rules (in priority order):
- * 1. Requestor chose mailed_materials → MAIL
- * 2. Requestor chose pickup → PICKUP
- * 3. Zip not in service area → MAIL (can't deploy staff)
- * 4. In service area + staff_support → STAFF_DEPLOYMENT
+ * Routing rules — applied in priority order across all selected types:
+ * 1. staff_support + in service area → STAFF_DEPLOYMENT (highest priority)
+ * 2. mailed_materials → MAIL
+ * 3. pickup → PICKUP
+ * 4. staff_support but outside service area → MAIL (can't deploy)
  *
- * @param {string} requestType - One of the RequestType enum values
+ * @param {string|string[]} requestTypes - One or more RequestType enum values
  * @param {string} zip - 5-digit event zip code
  * @param {number|null} estimatedAttendees - Expected attendee count
  * @param {string} eventDate - ISO date string (YYYY-MM-DD) of the event
@@ -34,19 +34,32 @@ import { isInServiceArea } from '../data/serviceAreaZips.js';
  *   isInServiceArea: boolean
  * }}
  */
-export function determineRoute(requestType, zip, estimatedAttendees, eventDate) {
+export function determineRoute(requestTypes, zip, estimatedAttendees, eventDate) {
+  // Normalise: accept legacy single string or new array
+  const types = Array.isArray(requestTypes) ? requestTypes : [requestTypes];
+
   // Check geographic coverage — determines whether staff deployment is possible
   const inServiceArea = isInServiceArea(zip);
+
+  const hasStaff = types.includes('staff_support');
+  const hasMail  = types.includes('mailed_materials');
+  const hasPickup = types.includes('pickup');
 
   let route;
   let routingReason;
 
-  if (requestType === 'mailed_materials') {
-    // Requestor explicitly chose mail delivery
+  if (hasStaff && inServiceArea) {
+    // Staff support wins when the event is within the service area
+    route = FulfillmentRoute.STAFF_DEPLOYMENT;
+    routingReason = types.length > 1
+      ? 'Staff support selected and event is within service area (primary route); additional fulfillment types noted'
+      : 'Event is within service area and eligible for staff support';
+  } else if (hasMail) {
     route = FulfillmentRoute.MAIL;
-    routingReason = 'Requestor selected mail delivery';
-  } else if (requestType === 'pickup') {
-    // Requestor will pick up materials from a distribution point
+    routingReason = hasStaff
+      ? 'Staff support requested but location is outside service area — mail delivery assigned'
+      : 'Requestor selected mail delivery';
+  } else if (hasPickup) {
     route = FulfillmentRoute.PICKUP;
     routingReason = 'Requestor selected pickup';
   } else if (!inServiceArea) {
@@ -54,7 +67,6 @@ export function determineRoute(requestType, zip, estimatedAttendees, eventDate) 
     route = FulfillmentRoute.MAIL;
     routingReason = 'Location outside Intermountain service area — mail delivery assigned';
   } else {
-    // In-service-area staff_support request — eligible for staff deployment
     route = FulfillmentRoute.STAFF_DEPLOYMENT;
     routingReason = 'Event is within service area and eligible for staff support';
   }

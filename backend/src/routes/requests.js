@@ -146,7 +146,7 @@ router.get('/', (req, res) => {
       eventDate: r.eventDate,
       eventCity: r.eventCity,
       eventZip: r.eventZip,
-      requestType: r.requestType,
+      requestTypes: r.requestTypes,
       fulfillmentRoute: r.fulfillmentRoute,
       status: r.status,
       isInServiceArea: r.isInServiceArea,

@@ -188,12 +188,16 @@ Return ONLY valid JSON, no other text.
 
 <examples>
 <example>
-<input>{"eventType":"health fair","audience":"seniors","eventZip":"84101","requestType":"staff_support","estimatedAttendees":80,"isInServiceArea":true}</input>
+<input>{"eventType":"health fair","audience":"seniors","eventZip":"84101","requestTypes":["staff_support"],"estimatedAttendees":80,"isInServiceArea":true}</input>
 <output>{"fulfillmentRoute":"staff_deployment","tags":["health fair","seniors","Salt Lake City","preventive care"],"assetCategory":"materials","urgency":"standard","priority":"medium","impactScore":72,"confidence":0.92,"reasoning":"Large senior health fair in Salt Lake City service area requesting on-site staffing. High community benefit.","intentMismatch":false,"anomalyFlags":[]}</output>
 </example>
 <example>
-<input>{"eventType":"distribution","audience":"general public","eventZip":"90210","requestType":"mailed_materials","estimatedAttendees":30,"isInServiceArea":false}</input>
+<input>{"eventType":"distribution","audience":"general public","eventZip":"90210","requestTypes":["mailed_materials"],"estimatedAttendees":30,"isInServiceArea":false}</input>
 <output>{"fulfillmentRoute":"mail","tags":["materials distribution","out-of-area"],"assetCategory":"materials","urgency":"standard","priority":"low","impactScore":25,"confidence":0.95,"reasoning":"Location is outside Intermountain service area; mail delivery is the appropriate route.","intentMismatch":false,"anomalyFlags":["outside service area"]}</output>
+</example>
+<example>
+<input>{"eventType":"community screening","audience":"general public","eventZip":"84111","requestTypes":["staff_support","mailed_materials"],"estimatedAttendees":150,"isInServiceArea":true}</input>
+<output>{"fulfillmentRoute":"staff_deployment","tags":["community screening","multi-fulfillment","high attendance","Salt Lake City"],"assetCategory":"materials","urgency":"standard","priority":"high","impactScore":88,"confidence":0.90,"reasoning":"High-attendance in-area event requesting both staff and mailed materials. Staff deployment is primary; materials should also be prepared for mail.","intentMismatch":false,"anomalyFlags":[]}</output>
 </example>
 </examples>`,
       messages: [

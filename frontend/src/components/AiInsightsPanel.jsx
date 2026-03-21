@@ -197,7 +197,7 @@ export default function AiInsightsPanel({ request }) {
               ? 'High attendance — consider requesting additional staff support.'
               : 'Standard staffing levels should be sufficient.'}
           </li>
-          {request.requestType === 'staff_support' && (
+          {(request.requestTypes ?? [request.requestType]).includes('staff_support') && (
             <li className="flex items-start gap-2">
               <span className="text-brand-purple-500 mt-0.5" aria-hidden="true">•</span>
               Generate calendar invite after approval to block staff schedules.

@@ -30,6 +30,12 @@ const VALID_REQUEST_TYPES = new Set(Object.values(RequestType));
 export function validateRequest(body) {
   const errors = {};
 
+  // Normalise legacy single-value submissions so the rest of validation is uniform.
+  // If the client sends requestType (string), convert it to requestTypes ([string]).
+  if (!Array.isArray(body.requestTypes) && body.requestType) {
+    body.requestTypes = [body.requestType];
+  }
+
   // --- Required string fields ---
   if (!body.requestorName || !String(body.requestorName).trim()) {
     errors.requestorName = 'Requestor name is required.';
@@ -78,11 +84,14 @@ export function validateRequest(body) {
     errors.eventZip = 'Zip code must be 5 digits (84101) or ZIP+4 (84101-1234).';
   }
 
-  // --- Request type: required, must be a valid enum value ---
-  if (!body.requestType || !String(body.requestType).trim()) {
-    errors.requestType = 'Request type is required.';
-  } else if (!VALID_REQUEST_TYPES.has(String(body.requestType).trim())) {
-    errors.requestType = `Must be one of: ${[...VALID_REQUEST_TYPES].join(', ')}.`;
+  // --- Request types: required array, each value must be a valid enum ---
+  if (!Array.isArray(body.requestTypes) || body.requestTypes.length === 0) {
+    errors.requestTypes = 'At least one request type is required.';
+  } else {
+    const invalid = body.requestTypes.filter((t) => !VALID_REQUEST_TYPES.has(String(t).trim()));
+    if (invalid.length > 0) {
+      errors.requestTypes = `Invalid request type(s): ${invalid.join(', ')}. Must be one of: ${[...VALID_REQUEST_TYPES].join(', ')}.`;
+    }
   }
 
   // --- Optional alternate contact email ---

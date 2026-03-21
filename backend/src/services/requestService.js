@@ -63,7 +63,7 @@ export async function createRequest(body) {
 
   // --- Step 5: Deterministic routing ---
   const routing = determineRoute(
-    body.requestType,
+    body.requestTypes,
     body.eventZip,
     body.estimatedAttendees ?? null,
     body.eventDate
@@ -82,7 +82,7 @@ export async function createRequest(body) {
     eventType: intakeResult?.eventType ?? 'general',
     audience: intakeResult?.audience ?? 'general public',
     estimatedAttendees: body.estimatedAttendees ?? intakeResult?.estimatedAttendees ?? null,
-    requestType: body.requestType,
+    requestTypes: body.requestTypes,
     assetCategory: body.assetCategory ?? null,
     materialNeeds: body.materialPreferences ?? intakeResult?.materialNeeds ?? [],
     eventDescription: body.eventDescription ?? '',
@@ -153,7 +153,7 @@ export async function createRequest(body) {
     specialInstructions: body.specialInstructions ?? null,
 
     // Classification
-    requestType: body.requestType,
+    requestTypes: body.requestTypes,
     assetCategory: body.assetCategory ?? (aiSucceeded ? aiDecision.assetCategory : null) ?? null,
     materialPreferences: body.materialPreferences ?? [],
 
