@@ -55,7 +55,7 @@ describe('RequestForm', () => {
       fireEvent.change(emailInput, { target: { value: 'not-an-email' } });
       fireEvent.blur(emailInput);
       await waitFor(() => {
-        expect(screen.getByText('Must be a valid email address.')).toBeInTheDocument();
+        expect(screen.getByText('Must be a valid email address (e.g. jane@example.org).')).toBeInTheDocument();
       });
     });
 
@@ -101,7 +101,7 @@ describe('RequestForm', () => {
       fireEvent.change(zipInput, { target: { value: '841' } });
       fireEvent.blur(zipInput);
       await waitFor(() => {
-        expect(screen.getByText('ZIP code must be exactly 5 digits.')).toBeInTheDocument();
+        expect(screen.getByText('Must be a 5-digit ZIP (84101) or ZIP+4 (84101-1234).')).toBeInTheDocument();
       });
     });
 
