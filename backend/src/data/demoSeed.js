@@ -1,13 +1,13 @@
 /**
  * @file demoSeed.js
  * Realistic demo data for judge presentations.
- * 8 requests covering all statuses, routes, and edge cases.
+ * 9 requests covering all statuses, routes, and edge cases.
  *
  * Run automatically on server startup in dev mode via server.js.
  */
 
 /**
- * Returns an array of 8 realistic demo requests for the hackathon presentation.
+ * Returns an array of 9 realistic demo requests for the hackathon presentation.
  * Covers:
  * - All RequestStatus values: pending, needs_review, approved, fulfilled, rejected
  * - All FulfillmentRoute values: staff_deployment, mail, pickup
@@ -427,6 +427,68 @@ export function getDemoRequests() {
           oldValue: 'pending',
           newValue: 'approved',
           note: 'Approved pickup request. Materials to be prepared.',
+        },
+      ],
+    },
+
+    // --- 9. Underserved community — Moab, UT (fulfilled 45 days ago, no recent activity) ---
+    // createdAt and eventDate are both >30 days old so this ZIP shows as "underserved"
+    // in the geo equity dashboard: in-service-area community that had prior need
+    // but has gone quiet — a latent demand signal.
+    {
+      id: 'REQ-DEMO09',
+      createdAt: iso(60),
+      updatedAt: iso(40),
+      requestorName: 'Elena Reyes',
+      requestorEmail: 'ereyes@moabcommunityclinic.org',
+      requestorPhone: '435-555-0909',
+      alternateContactName: null,
+      alternateContactEmail: null,
+      eventName: 'Rural Diabetes & Heart Health Outreach',
+      eventDate: dateOffset(-45),
+      eventCity: 'Moab',
+      eventZip: '84532',
+      estimatedAttendees: 35,
+      eventDescription: 'Health outreach day for rural Grand County residents. Many attendees are uninsured ranching families with limited access to preventive care. Materials on diabetes, cardiovascular disease, and healthy eating were distributed.',
+      specialInstructions: null,
+      requestType: 'staff_support',
+      assetCategory: 'materials',
+      materialPreferences: ['diabetes prevention pamphlets', 'heart health guides', 'healthy eating resources'],
+      fulfillmentRoute: 'staff_deployment',
+      routingReason: 'Event is within service area and eligible for staff support',
+      isInServiceArea: true,
+      priority: 'medium',
+      urgency: 'standard',
+      aiStatus: 'success',
+      aiTags: ['rural outreach', 'diabetes prevention', 'heart health', 'uninsured', 'Grand County'],
+      aiSuggestedRoute: 'staff_deployment',
+      aiConfidence: 'high',
+      aiSummary: 'Rural health outreach for uninsured ranching families in Grand County — strong mission alignment, underserved population with limited healthcare access.',
+      aiImpactScore: 72,
+      aiAnomalyFlags: [],
+      planningStaffingCount: 1,
+      planningRecommendedMaterials: ['diabetes prevention kit', 'heart health pamphlets', 'healthy eating guide', 'community resource directory'],
+      planningLogisticsNotes: 'Rural location — 3.5 hr drive from SLC. Confirm fuel reimbursement and staff day trip logistics.',
+      planningFlags: ['remote location — plan travel day'],
+      intakeEventType: 'health outreach',
+      intakeAudience: 'uninsured rural families',
+      status: 'fulfilled',
+      adminNotes: 'Great turnout for a rural event. Requestor asked about quarterly follow-up visits.',
+      calendarInviteGenerated: true,
+      auditLog: [
+        {
+          timestamp: iso(55),
+          field: 'status',
+          oldValue: 'pending',
+          newValue: 'approved',
+          note: 'Approved — rural underserved community, strong mission fit.',
+        },
+        {
+          timestamp: iso(40),
+          field: 'status',
+          oldValue: 'approved',
+          newValue: 'fulfilled',
+          note: 'Event completed. 35 attendees. Staff noted high need for follow-up visits in this area.',
         },
       ],
     },
