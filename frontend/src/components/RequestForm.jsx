@@ -4,10 +4,11 @@
  * Handles duplicate detection, network errors, and AI unavailability.
  */
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import Button from './ui/Button.jsx';
 import Card from './ui/Card.jsx';
 import ConfirmationCard from './ConfirmationCard.jsx';
+import VoiceIntakeModal from './VoiceIntakeModal.jsx';
 import { apiPost } from '../lib/api.js';
 
 const TODAY = new Date().toISOString().split('T')[0];
@@ -142,7 +143,18 @@ export default function RequestForm() {
   const [result, setResult] = useState(null);
   const [networkError, setNetworkError] = useState(null);
   const [duplicateWarning, setDuplicateWarning] = useState(null);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const firstErrorRef = useRef(null);
+
+  /** Called when the voice modal completes — merge extracted fields into form. */
+  function handleVoiceComplete(extractedFields) {
+    setForm((prev) => ({
+      ...prev,
+      ...Object.fromEntries(
+        Object.entries(extractedFields).filter(([, v]) => v !== null && v !== undefined && v !== '')
+      ),
+    }));
+  }
 
   function handleChange(e) {
     const { name } = e.target;
@@ -248,8 +260,40 @@ export default function RequestForm() {
   }
 
   return (
+    <>
+      <VoiceIntakeModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+        onComplete={(fields) => {
+          handleVoiceComplete(fields);
+          setIsVoiceModalOpen(false);
+        }}
+        initialFields={form}
+      />
+
     <form onSubmit={handleSubmit} noValidate aria-label="Community Health Request Form">
       <div className="space-y-6">
+
+        {/* Voice Assistant entry point */}
+        <div className="flex items-center justify-between rounded-xl border border-teal-200 bg-teal-50 px-5 py-3">
+          <div>
+            <p className="text-sm font-medium text-teal-800">Prefer to speak?</p>
+            <p className="text-xs text-teal-600 mt-0.5">Use our voice assistant to fill in this form conversationally.</p>
+          </div>
+          <button
+            type="button"
+            aria-label="Open voice assistant to fill form"
+            onClick={() => setIsVoiceModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-1 shrink-0 ml-4"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 1a2.5 2.5 0 0 0-2.5 2.5v5a2.5 2.5 0 0 0 5 0v-5A2.5 2.5 0 0 0 8 1z" />
+              <path d="M4 8.5A4 4 0 0 0 12 8.5v-1h-1v1a3 3 0 0 1-6 0v-1H4v1z" />
+              <path d="M7.5 13.5v1.5h1v-1.5A5.5 5.5 0 0 0 13.5 8h-1A4.5 4.5 0 0 1 7.5 12.5v1z" />
+            </svg>
+            Use Voice Assistant
+          </button>
+        </div>
 
         {/* Network error banner */}
         {networkError && (
@@ -708,6 +752,7 @@ export default function RequestForm() {
         </div>
       </div>
     </form>
+    </>
   );
 }
 

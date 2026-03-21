@@ -9,6 +9,7 @@ import TicketQueue from '../components/TicketQueue.jsx';
 import RequestDetail from '../components/RequestDetail.jsx';
 import NotificationToast from '../components/NotificationToast.jsx';
 import CopilotSidebar from '../components/CopilotSidebar.jsx';
+import VoiceCommandBar from '../components/VoiceCommandBar.jsx';
 import useRequests from '../hooks/useRequests.js';
 
 /**
@@ -23,10 +24,39 @@ export default function AdminDashboard() {
   const selectRequest = useRequests((s) => s.selectRequest);
   const updateLocalRequest = useRequests((s) => s.updateLocalRequest);
   const addNotification = useRequests((s) => s.addNotification);
+  const setFilter = useRequests((s) => s.setFilter);
+  const refreshRequests = useRequests((s) => s.refreshRequests);
   const [copilotOpen, setCopilotOpen] = useState(false);
 
   function handleRequestUpdated(updated) {
     updateLocalRequest(updated.id, updated);
+  }
+
+  /** Map voice command action to filter store updates. */
+  function handleVoiceCommand({ action, params }) {
+    if (action === 'reset') {
+      setFilter('priorityFilter', 'all');
+      setFilter('statusFilter', 'all');
+      setFilter('routeFilter', 'all');
+      setFilter('dateFrom', '');
+      setFilter('dateTo', '');
+      return;
+    }
+    if (action === 'filter') {
+      if (params.priority) setFilter('priorityFilter', params.priority);
+      if (params.status)   setFilter('statusFilter', params.status);
+      if (params.route)    setFilter('routeFilter', params.route);
+      if (params.dateRange === 'this_week') {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        setFilter('dateFrom', monday.toISOString().split('T')[0]);
+        setFilter('dateTo', sunday.toISOString().split('T')[0]);
+      }
+    }
   }
 
   return (
@@ -53,6 +83,10 @@ export default function AdminDashboard() {
               Geo Equity
             </a>
           </div>
+        </div>
+        {/* Voice command bar */}
+        <div className="mt-2 pt-2 border-t border-gray-50">
+          <VoiceCommandBar onCommand={handleVoiceCommand} />
         </div>
       </div>
 
