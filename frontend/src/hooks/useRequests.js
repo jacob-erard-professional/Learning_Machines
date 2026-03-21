@@ -81,6 +81,7 @@ const useRequests = create((set, get) => ({
         ...(filters.search ? { search: filters.search } : {}),
         ...(filters.statusFilter !== 'all' ? { status: filters.statusFilter } : {}),
         ...(filters.routeFilter !== 'all' ? { route: filters.routeFilter } : {}),
+        ...(filters.priorityFilter !== 'all' ? { priority: filters.priorityFilter } : {}),
         ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
         ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
         sortBy: filters.sortBy,

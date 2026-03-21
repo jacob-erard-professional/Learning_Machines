@@ -4,6 +4,7 @@
  */
 
 import StatusBadge from './StatusBadge.jsx';
+import { getTicketPriority } from '../../lib/ticketPriority.js';
 
 /** Route icon components */
 const ROUTE_ICONS = {
@@ -42,6 +43,7 @@ const ROUTE_LABELS = {
 export default function RequestCard({ request, onClick, isSelected = false }) {
   const routeIcon = ROUTE_ICONS[request.fulfillmentRoute];
   const routeLabel = ROUTE_LABELS[request.fulfillmentRoute] ?? request.fulfillmentRoute;
+  const ticketPriority = getTicketPriority(request);
 
   function handleKeyDown(e) {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -93,6 +95,16 @@ export default function RequestCard({ request, onClick, isSelected = false }) {
         <p className="text-xs text-gray-500 mt-0.5 truncate">
           {request.eventCity} · {eventDate}
         </p>
+        <div className="mt-2 flex items-center gap-2">
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${ticketPriority.styles}`}
+            title={ticketPriority.reason}
+            aria-label={`Ticket priority ${ticketPriority.label}. ${ticketPriority.reason}.`}
+          >
+            {ticketPriority.label} Priority
+          </span>
+          <span className="text-[11px] text-gray-400 truncate">{routeLabel}</span>
+        </div>
         {request.aiTags?.length > 0 && (
           <p className="text-xs text-gray-400 mt-1 truncate">
             {request.aiTags.slice(0, 3).join(', ')}

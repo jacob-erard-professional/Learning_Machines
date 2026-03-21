@@ -17,36 +17,6 @@ const EXAMPLE_CHIPS = [
   'What if we opened a new service area in Colorado?',
 ];
 
-/** Mock simulation result for development */
-const MOCK_RESULT = {
-  scenario: 'What if I had 3 more staff?',
-  summary: 'Adding 3 additional community health staff would allow IHC to fulfill approximately 18 additional staff deployment requests per month — a 35% increase in capacity.',
-  before: {
-    staffCapacity: 8,
-    monthlyDeployments: 52,
-    pendingBacklog: 14,
-    avgResponseDays: 3.2,
-  },
-  after: {
-    staffCapacity: 11,
-    monthlyDeployments: 70,
-    pendingBacklog: 4,
-    avgResponseDays: 1.9,
-  },
-  affectedZips: [
-    { zip: '84101', city: 'Salt Lake City', additionalCapacity: 4 },
-    { zip: '84601', city: 'Provo', additionalCapacity: 3 },
-    { zip: '89101', city: 'Las Vegas', additionalCapacity: 3 },
-    { zip: '83702', city: 'Boise', additionalCapacity: 2 },
-  ],
-  tradeoffs: [
-    'Increased personnel costs (~$180k/yr per FTE).',
-    'Staff training and onboarding period of 4–6 weeks.',
-    'May require additional vehicle access in rural ZIPs.',
-    'Backlog reduction would improve requestor satisfaction significantly.',
-  ],
-};
-
 /**
  * Simulation "What-if Analysis" page.
  *
@@ -65,11 +35,10 @@ export default function SimulationPage() {
     setError(null);
 
     try {
-      const response = await apiPost('/api/simulate', { scenario: scenario.trim() });
+      const response = await apiPost('/api/simulate/scenario', { scenario: scenario.trim() });
       setResult(response);
-    } catch {
-      // Fall back to mock result for development
-      setResult({ ...MOCK_RESULT, scenario: scenario.trim() });
+    } catch (err) {
+      setError(err.message || 'Simulation failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -244,7 +213,9 @@ export default function SimulationPage() {
                       <td className="py-2 font-mono text-brand-purple-500 font-semibold">{z.zip}</td>
                       <td className="py-2 text-gray-700">{z.city}</td>
                       <td className="py-2">
-                        <span className="text-brand-purple-600 font-semibold">+{z.additionalCapacity}</span>
+                        <span className={`font-semibold ${z.additionalCapacity >= 0 ? 'text-brand-purple-600' : 'text-brand-yellow-700'}`}>
+                          {z.additionalCapacity > 0 ? '+' : ''}{z.additionalCapacity}
+                        </span>
                       </td>
                     </tr>
                   ))}
