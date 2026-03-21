@@ -96,7 +96,7 @@ describe('LoginPage', () => {
 
     it('renders footer copyright', () => {
       renderPage();
-      expect(screen.getByText(/intermountain healthcare/i, { selector: 'p' })).toBeInTheDocument();
+      expect(screen.getByText(/© \d{4} intermountain healthcare/i, { selector: 'p' })).toBeInTheDocument();
     });
   });
 
