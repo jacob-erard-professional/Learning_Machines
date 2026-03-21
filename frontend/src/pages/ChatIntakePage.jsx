@@ -7,6 +7,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiPost } from '../lib/api.js';
+import BlobShape from '../components/ui/BlobShape.jsx';
 
 const INITIAL_MESSAGES = [
   {
@@ -95,7 +96,22 @@ export default function ChatIntakePage() {
   const isReady = lastMessage?.ready;
 
   return (
-    <div className="max-w-2xl mx-auto h-[calc(100vh-64px-60px)] flex flex-col px-4 sm:px-6 py-4">
+    <div className="max-w-2xl mx-auto flex flex-col px-4 sm:px-6">
+      {/* ICH Hero Banner */}
+      <div
+        className="relative overflow-hidden py-10 px-6 -mx-4 sm:-mx-6 mb-4"
+        style={{ background: 'linear-gradient(135deg, #411a84 0%, #1A1A4E 100%)' }}
+      >
+        <BlobShape variant={2} color="#A8B4F8" className="absolute blob-float" style={{ width: '180px', height: '180px', top: '-40px', right: '5%', opacity: 0.25, pointerEvents: 'none' }} />
+        <BlobShape variant={5} color="#E91E8C" className="absolute blob-float-slow" style={{ width: '140px', height: '140px', bottom: '-30px', right: '15%', opacity: 0.20, pointerEvents: 'none' }} />
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white mb-1" style={{ color: 'white' }}>Chat Intake</h1>
+          <p className="text-brand-periwinkle-300 text-sm" style={{ color: '#A8B4F8' }}>Tell us about your event or request in your own words.</p>
+        </div>
+      </div>
+
+      {/* Chat area — uses remaining viewport height minus hero + AppShell chrome */}
+      <div className="flex flex-col" style={{ height: 'calc(100vh - 64px - 52px - 140px)' }}>
       {/* Header */}
       <div className="mb-4 shrink-0">
         <div className="flex items-center gap-2 mb-1">
@@ -235,6 +251,7 @@ export default function ChatIntakePage() {
         </div>
         <p className="text-xs text-gray-400 mt-1.5 text-center">Press Enter to send · Shift+Enter for new line</p>
       </div>
+      </div>{/* end chat area */}
     </div>
   );
 }

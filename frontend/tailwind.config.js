@@ -64,6 +64,16 @@ export default {
           600: '#ef7e4f',
           700: '#e85c24',
         },
+        'brand-orange': {
+          400: '#FF8A5E',
+          500: '#FF6B35',
+          600: '#E5501A',
+        },
+        'brand-cornflower': {
+          200: '#D0D8FF',
+          500: '#8B9EFF',
+          700: '#5B6EFF',
+        },
       },
       fontFamily: {
         sans:    ['DM Sans', 'system-ui', '-apple-system', 'sans-serif'],

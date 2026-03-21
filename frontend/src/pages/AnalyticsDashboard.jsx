@@ -9,6 +9,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar,
 } from 'recharts';
 import { apiGet } from '../lib/api.js';
+import BlobShape from '../components/ui/BlobShape.jsx';
 import { mockRequests, mockTrends } from '../data/mockRequests.js';
 import Card from '../components/ui/Card.jsx';
 import LoadingSpinner from '../components/ui/LoadingSpinner.jsx';
@@ -108,10 +109,17 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
-        <p className="text-sm text-gray-500 mt-1">Community Health request trends and performance metrics.</p>
+      {/* ICH Hero Banner */}
+      <div
+        className="relative overflow-hidden py-10 px-6 -mx-4 sm:-mx-6 lg:-mx-8 rounded-none"
+        style={{ background: 'linear-gradient(135deg, #1A1A4E 0%, #411a84 100%)' }}
+      >
+        <BlobShape variant={1} color="#E91E8C" className="absolute blob-float" style={{ width: '180px', height: '180px', top: '-40px', right: '5%', opacity: 0.25, pointerEvents: 'none' }} />
+        <BlobShape variant={3} color="#8B9EFF" className="absolute blob-float-slow" style={{ width: '140px', height: '140px', bottom: '-30px', right: '15%', opacity: 0.20, pointerEvents: 'none' }} />
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white mb-1" style={{ color: 'white' }}>Analytics</h1>
+          <p className="text-brand-periwinkle-300 text-sm" style={{ color: '#A8B4F8' }}>Track request trends, routing, and fulfillment performance.</p>
+        </div>
       </div>
 
       {loading ? (

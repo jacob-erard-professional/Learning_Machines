@@ -12,6 +12,7 @@ import Card from '../components/ui/Card.jsx';
 import ChoroplethMap from '../components/ChoroplethMap.jsx';
 import StateDetailPanel from '../components/StateDetailPanel.jsx';
 import RequestDetail from '../components/RequestDetail.jsx';
+import BlobShape from '../components/ui/BlobShape.jsx';
 
 // Brand hex values used for heatmap tiles.
 // Inline styles bypass Tailwind's purge — guaranteed to render correctly.
@@ -128,12 +129,14 @@ export default function GeoEquityView() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Geographic Equity Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Request distribution by ZIP code. High-demand and underserved areas are flagged for prioritization.
-        </p>
+      {/* ICH Hero Banner */}
+      <div className="relative overflow-hidden bg-brand-navy-500 py-10 px-6 -mx-4 sm:-mx-6 lg:-mx-8 rounded-none" style={{ backgroundColor: '#1A1A4E' }}>
+        <BlobShape variant={5} color="#A8B4F8" className="absolute blob-float" style={{ width: '180px', height: '180px', top: '-40px', right: '5%', opacity: 0.25, pointerEvents: 'none' }} />
+        <BlobShape variant={2} color="#F5C518" className="absolute blob-float-slow" style={{ width: '140px', height: '140px', bottom: '-30px', right: '15%', opacity: 0.20, pointerEvents: 'none' }} />
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white mb-1" style={{ color: 'white' }}>Geographic Equity</h1>
+          <p className="text-brand-periwinkle-300 text-sm" style={{ color: '#A8B4F8' }}>Visualize service coverage and identify underserved ZIP codes.</p>
+        </div>
       </div>
 
       {/* Summary bar */}
