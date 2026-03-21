@@ -4,12 +4,14 @@
  * Never color-only — always includes text label.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { apiGet } from '../lib/api.js';
-import { mockGeoData } from '../data/mockRequests.js';
+import { mockGeoData, mockRequests } from '../data/mockRequests.js';
 import LoadingSpinner from '../components/ui/LoadingSpinner.jsx';
 import Card from '../components/ui/Card.jsx';
 import ChoroplethMap from '../components/ChoroplethMap.jsx';
+import StateDetailPanel from '../components/StateDetailPanel.jsx';
+import RequestDetail from '../components/RequestDetail.jsx';
 
 // Brand hex values used for heatmap tiles.
 // Inline styles bypass Tailwind's purge — guaranteed to render correctly.
@@ -70,6 +72,8 @@ export default function GeoEquityView() {
   const [error, setError] = useState(null);
   const [sortCol, setSortCol] = useState('requestCount30d');
   const [sortDir, setSortDir] = useState('desc');
+  const [selectedState, setSelectedState] = useState(null);
+  const [detailRequestId, setDetailRequestId] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -103,6 +107,25 @@ export default function GeoEquityView() {
   // maxCount still used for the mini progress bar in the table (30d column)
   const maxCount = Math.max(...summary.map((r) => r.requestCount30d), 1);
 
+  // Build zip → state lookup from geo summary rows
+  const zipToState = useMemo(() => {
+    const map = {};
+    summary.forEach((row) => { map[row.zip] = row.state; });
+    return map;
+  }, [summary]);
+
+  // Requests filtered by selected state (matched via eventZip lookup)
+  const stateRequests = useMemo(() => {
+    if (!selectedState) return [];
+    return mockRequests.filter((r) => zipToState[r.eventZip] === selectedState);
+  }, [selectedState, zipToState]);
+
+  // Geo rows for the selected state
+  const stateGeoRows = useMemo(() => {
+    if (!selectedState) return [];
+    return summary.filter((r) => r.state === selectedState);
+  }, [selectedState, summary]);
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Page header */}
@@ -132,7 +155,11 @@ export default function GeoEquityView() {
               States shaded by total request volume. Dots mark cities — size reflects volume, color reflects flag status.
               Hover for details.
             </p>
-            <ChoroplethMap cityData={summary} />
+            <ChoroplethMap
+              cityData={summary}
+              selectedState={selectedState}
+              onStateClick={setSelectedState}
+            />
           </Card>
 
           {/* Sortable table */}
@@ -293,6 +320,35 @@ export default function GeoEquityView() {
               ))}
             </div>
           </Card>
+        </>
+      )}
+
+      {/* State detail slide-in panel */}
+      {selectedState && !detailRequestId && (
+        <StateDetailPanel
+          stateAbbr={selectedState}
+          requests={stateRequests}
+          geoRows={stateGeoRows}
+          onClose={() => setSelectedState(null)}
+          onOpenRequest={(id) => setDetailRequestId(id)}
+        />
+      )}
+
+      {/* Full request detail modal overlay */}
+      {detailRequestId && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/30 z-40"
+            aria-hidden="true"
+            onClick={() => setDetailRequestId(null)}
+          />
+          <div className="fixed inset-y-0 right-0 w-full sm:w-[520px] z-50 bg-white shadow-2xl overflow-y-auto">
+            <RequestDetail
+              requestId={detailRequestId}
+              onClose={() => setDetailRequestId(null)}
+              onUpdated={() => {}}
+            />
+          </div>
         </>
       )}
     </div>

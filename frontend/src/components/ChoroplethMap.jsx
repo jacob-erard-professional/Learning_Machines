@@ -80,11 +80,13 @@ function dotColor(flag) {
 /**
  * Choropleth map of the 7 IHC service-area states with city request dots.
  *
- * @param {{ cityData: Array }} props
- * @param {Array}  props.cityData - rows from mockGeoData.summary with lat/lng
+ * @param {object}   props
+ * @param {Array}    props.cityData      - rows from mockGeoData.summary with lat/lng
+ * @param {string|null} props.selectedState  - currently selected state abbreviation
+ * @param {(abbr: string) => void} props.onStateClick - called when a service-area state is clicked
  * @returns {JSX.Element}
  */
-export default function ChoroplethMap({ cityData = [] }) {
+export default function ChoroplethMap({ cityData = [], selectedState = null, onStateClick }) {
   const [tooltip, setTooltip] = useState(null); // { x, y, content }
 
   // Aggregate total requests per state for choropleth shading
@@ -104,12 +106,15 @@ export default function ChoroplethMap({ cityData = [] }) {
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="pointer-events-none absolute z-20 bg-brand-navy-500 text-white text-xs rounded-lg px-3 py-2 shadow-lg max-w-[180px]"
+          className="pointer-events-none absolute z-20 bg-brand-navy-500 text-white text-xs rounded-lg px-3 py-2 shadow-lg max-w-[180px] whitespace-pre-line"
           style={{ left: tooltip.x + 12, top: tooltip.y - 8 }}
         >
           {tooltip.content}
         </div>
       )}
+
+      {/* Click-to-open hint */}
+      <p className="text-xs text-gray-400 italic mb-2">Click a highlighted state to view its requests</p>
 
       <ComposableMap
         projection="geoAlbersUsa"
@@ -125,16 +130,17 @@ export default function ChoroplethMap({ cityData = [] }) {
                 const isService = SERVICE_STATE_SET.has(geo.id);
                 const abbr = SERVICE_STATES[geo.id];
                 const count = abbr ? (stateTotals[abbr] ?? 0) : 0;
+                const isSelected = abbr === selectedState;
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={isService ? stateFill(count) : BRAND.outside}
-                    stroke={BRAND.border}
-                    strokeWidth={0.8}
+                    fill={isSelected ? '#1A1A4E' : isService ? stateFill(count) : BRAND.outside}
+                    stroke={isSelected ? '#6B2FD9' : BRAND.border}
+                    strokeWidth={isSelected ? 2 : 0.8}
                     style={{
-                      default: { outline: 'none', opacity: isService ? 1 : 0.35 },
-                      hover: { outline: 'none', opacity: isService ? 0.85 : 0.35 },
+                      default: { outline: 'none', opacity: isService ? 1 : 0.3, cursor: isService ? 'pointer' : 'default' },
+                      hover:   { outline: 'none', opacity: isService ? 0.8 : 0.3, cursor: isService ? 'pointer' : 'default' },
                       pressed: { outline: 'none' },
                     }}
                     onMouseEnter={(e) => {
@@ -142,10 +148,15 @@ export default function ChoroplethMap({ cityData = [] }) {
                       setTooltip({
                         x: e.nativeEvent.offsetX,
                         y: e.nativeEvent.offsetY,
-                        content: `${abbr} — ${count} total requests`,
+                        content: `${abbr} — ${count} total requests\nClick to view details`,
                       });
                     }}
                     onMouseLeave={() => setTooltip(null)}
+                    onClick={() => {
+                      if (!isService) return;
+                      setTooltip(null);
+                      onStateClick?.(abbr === selectedState ? null : abbr);
+                    }}
                   />
                 );
               })
