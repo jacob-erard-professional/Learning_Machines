@@ -123,6 +123,66 @@ Return ONLY valid JSON, no other text.
 }
 
 // ---------------------------------------------------------------------------
+// Agent 1b: Chat Intake Agent
+// Multi-turn extraction of ALL required form fields from conversational input.
+// ---------------------------------------------------------------------------
+
+/**
+ * Extracts all required intake form fields from a chat message,
+ * taking into account fields already collected in prior turns.
+ *
+ * @param {string} message - Current user message
+ * @param {Object} knownFields - Fields already collected (may be empty)
+ * @returns {Promise<Object>} Partial or complete set of form fields
+ */
+export async function runChatIntakeAgent(message, knownFields = {}) {
+  if (!message || !message.trim()) return {};
+
+  const knownSummary = Object.keys(knownFields).length
+    ? `Already collected: ${JSON.stringify(knownFields)}`
+    : 'No fields collected yet.';
+
+  try {
+    const response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 512,
+      system: `You are an intake agent for Intermountain Healthcare's Community Health program.
+Extract structured form fields from the user's message. Only include fields you can determine from the message — omit fields that aren't mentioned. Do not invent information.
+
+<fields>
+requestorName: string (full name of the person submitting)
+requestorEmail: string (email address)
+requestorPhone: string (phone number)
+eventName: string (name of the event or program)
+eventDate: string (ISO date YYYY-MM-DD; infer year if only month/day given)
+eventCity: string (city where event takes place)
+eventZip: string (5-digit zip code)
+requestType: one of "staff_support" | "mailed_materials" | "pickup"
+  - staff_support: requestor wants staff to attend in person
+  - mailed_materials: requestor wants materials mailed to them
+  - pickup: requestor will pick up materials
+estimatedAttendees: number or null
+</fields>
+
+Return ONLY valid JSON. Omit any field you cannot determine. Example: {"requestorName":"Jane","eventDate":"2026-05-10"}`,
+      messages: [
+        {
+          role: 'user',
+          content: `${knownSummary}\n\nUser message: ${message.trim()}\n\nReturn ONLY valid JSON with the fields you can extract from this message.`,
+        },
+      ],
+    });
+
+    const text = response.content[0]?.text?.trim() ?? '';
+    const clean = text.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
+    return JSON.parse(clean);
+  } catch (err) {
+    console.error('[ChatIntakeAgent] Error:', err.message);
+    return {};
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Agent 2: Decision Agent
 // Classifies and tags the structured request for admin review.
 // ---------------------------------------------------------------------------

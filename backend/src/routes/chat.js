@@ -1,28 +1,65 @@
 /**
  * @file routes/chat.js
- * Conversational intake endpoint — lets requestors describe their event
- * in plain language and get back structured fields for the intake form.
+ * Conversational intake endpoint — guides requestors through providing all
+ * required form fields via natural language, one follow-up at a time.
  *
- * The frontend can use this to pre-fill the form, reducing friction for
- * requestors who don't know exactly what category or type to select.
+ * The frontend sends accumulated `context` each turn so this route can
+ * determine which required fields are still missing and ask for them.
  */
 
 import { Router } from 'express';
-import { runIntakeAgent } from '../lib/ai.js';
+import { runChatIntakeAgent } from '../lib/ai.js';
 
 const router = Router();
 
+const REQUIRED_FIELDS = [
+  'requestorName',
+  'requestorEmail',
+  'requestorPhone',
+  'eventName',
+  'eventDate',
+  'eventCity',
+  'eventZip',
+  'requestType',
+];
+
+const FIELD_LABELS = {
+  requestorName: 'your full name',
+  requestorEmail: 'your email address',
+  requestorPhone: 'your phone number',
+  eventName: 'the event name',
+  eventDate: 'the event date (e.g. May 10, 2026)',
+  eventCity: 'the city where the event will be held',
+  eventZip: 'the zip code for the event location',
+  requestType:
+    'the type of support needed — staff attendance, mailed materials, or pickup',
+};
+
+/**
+ * Builds a friendly question for the first one or two missing required fields.
+ * @param {string[]} missing - Array of missing field keys
+ * @returns {string}
+ */
+function buildFollowUpQuestion(missing) {
+  const labels = missing.slice(0, 2).map((f) => FIELD_LABELS[f]);
+  if (labels.length === 1) {
+    return `Could you also share ${labels[0]}?`;
+  }
+  return `Could you also share ${labels[0]} and ${labels[1]}?`;
+}
+
 /**
  * @route POST /api/chat
- * Accepts a free-text message, runs the IntakeAgent, and returns
- * structured fields + a reply message for the chat interface.
+ * Accepts a free-text message plus accumulated context from prior turns.
+ * Extracts new fields, merges with known fields, and asks targeted follow-ups
+ * until all required fields are present.
  *
- * Body: { message: string }
- * Response: { reply, extractedFields, ready: boolean, prefillData }
+ * Body: { message: string, context?: object }
+ * Response: { reply, extractedFields, ready: boolean }
  */
 router.post('/', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, context = {} } = req.body;
 
     if (!message || !String(message).trim()) {
       return res.status(400).json({
@@ -31,52 +68,40 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Run the intake agent on the free-text input
-    const extracted = await runIntakeAgent(message.trim());
+    // Extract new fields from this message
+    const newFields = await runChatIntakeAgent(message.trim(), context);
 
-    // Determine if we have enough info to pre-fill the form
-    const hasMinimumInfo = Boolean(
-      extracted.success &&
-        (extracted.eventName || extracted.eventType) &&
-        extracted.city
-    );
-
-    // Build a friendly reply message
-    let reply;
-    if (!extracted.success) {
-      reply =
-        "I'm having trouble analyzing your request right now. Please fill out the form manually and we'll take it from there!";
-    } else if (hasMinimumInfo) {
-      reply = `I can help with that! I've extracted some details from your description:\n` +
-        `• Event type: ${extracted.eventType || 'Community health event'}\n` +
-        `• Audience: ${extracted.audience || 'General public'}\n` +
-        `• City: ${extracted.city || 'Not specified'}\n` +
-        (extracted.estimatedAttendees ? `• Estimated attendees: ${extracted.estimatedAttendees}\n` : '') +
-        `\nI've pre-filled what I could. Please review and complete any missing fields.`;
-    } else {
-      reply =
-        "Thanks for the description! I've extracted some initial details. Could you also tell me the event city and your estimated number of attendees?";
+    // Merge: new non-empty values override accumulated context
+    const merged = { ...context };
+    for (const [key, value] of Object.entries(newFields)) {
+      if (value !== null && value !== undefined && value !== '') {
+        merged[key] = value;
+      }
     }
 
-    // prefillData maps extracted fields to form field names
-    const prefillData = {
-      eventName: extracted.eventName || null,
-      eventCity: extracted.city || null,
-      eventZip: extracted.zip || null,
-      estimatedAttendees: extracted.estimatedAttendees || null,
-      eventDescription: message.trim(),
-      // Suggest requestType based on materialNeeds — if no on-site needs, suggest mailed_materials
-      requestType:
-        extracted.materialNeeds?.length > 0 && !message.toLowerCase().includes('mail')
-          ? 'staff_support'
-          : null,
-    };
+    // Determine which required fields are still missing
+    const missing = REQUIRED_FIELDS.filter(
+      (f) => !merged[f] && merged[f] !== 0
+    );
+    const ready = missing.length === 0;
+
+    let reply;
+    if (ready) {
+      reply =
+        "I have everything I need! Click \"Review & Submit\" below to review your request and send it in.";
+    } else if (Object.keys(merged).filter((k) => merged[k]).length === 0) {
+      // Nothing collected yet — welcome + first ask
+      reply =
+        "Hi! I can help you submit a Community Health support request. " +
+        buildFollowUpQuestion(missing);
+    } else {
+      reply = buildFollowUpQuestion(missing);
+    }
 
     return res.json({
       reply,
-      extractedFields: extracted,
-      ready: hasMinimumInfo,
-      prefillData,
+      extractedFields: merged,
+      ready,
     });
   } catch (err) {
     console.error('[POST /chat]', err);
