@@ -14,10 +14,24 @@ import StateDetailPanel from '../components/StateDetailPanel.jsx';
 import RequestDetail from '../components/RequestDetail.jsx';
 import BlobShape from '../components/ui/BlobShape.jsx';
 
-// Module-level lookup built from mock geo data — always available regardless
-// of whether the backend API returns matching zip codes.
-const ZIP_TO_STATE = {};
-mockGeoData.summary.forEach((row) => { ZIP_TO_STATE[row.zip] = row.state; });
+/**
+ * Derive IHC service-area state from a US ZIP code using USPS prefix ranges.
+ * More robust than a fixed lookup — covers any ZIP that enters the system.
+ * @param {string} zip
+ * @returns {string|null} two-letter state abbreviation or null
+ */
+function getStateFromZip(zip) {
+  if (!zip || zip.length < 3) return null;
+  const p = parseInt(zip.substring(0, 3), 10);
+  if (p >= 840 && p <= 847) return 'UT';
+  if (p >= 832 && p <= 838) return 'ID';
+  if (p >= 889 && p <= 898) return 'NV';
+  if (p >= 800 && p <= 816) return 'CO';
+  if (p >= 590 && p <= 599) return 'MT';
+  if (p >= 820 && p <= 831) return 'WY';
+  if (p >= 660 && p <= 679) return 'KS';
+  return null;
+}
 
 // Brand hex values used for heatmap tiles.
 // Inline styles bypass Tailwind's purge — guaranteed to render correctly.
@@ -76,6 +90,7 @@ export default function GeoEquityView() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [allRequests, setAllRequests] = useState(mockRequests);
   const [sortCol, setSortCol] = useState('requestCount30d');
   const [sortDir, setSortDir] = useState('desc');
   const [selectedState, setSelectedState] = useState(null);
@@ -83,16 +98,15 @@ export default function GeoEquityView() {
 
   useEffect(() => {
     setLoading(true);
-    apiGet('/api/analytics/geo')
-      .then((res) => {
-        setData(res);
-        setLoading(false);
-      })
-      .catch(() => {
-        // Fall back to mock data for development
-        setData(mockGeoData);
-        setLoading(false);
-      });
+    // Fetch geo summary and full request list in parallel
+    Promise.all([
+      apiGet('/api/analytics/geo').catch(() => mockGeoData),
+      apiGet('/api/requests').catch(() => ({ results: mockRequests })),
+    ]).then(([geoRes, reqRes]) => {
+      setData(geoRes);
+      setAllRequests(reqRes.results ?? mockRequests);
+      setLoading(false);
+    });
   }, []);
 
   function handleSort(col) {
@@ -113,11 +127,11 @@ export default function GeoEquityView() {
   // maxCount still used for the mini progress bar in the table (30d column)
   const maxCount = Math.max(...summary.map((r) => r.requestCount30d), 1);
 
-  // Requests filtered by selected state using the stable module-level lookup
+  // Requests filtered by selected state using range-based zip derivation
   const stateRequests = useMemo(() => {
     if (!selectedState) return [];
-    return mockRequests.filter((r) => ZIP_TO_STATE[r.eventZip] === selectedState);
-  }, [selectedState]);
+    return allRequests.filter((r) => getStateFromZip(r.eventZip) === selectedState);
+  }, [selectedState, allRequests]);
 
   // Geo rows for the selected state (from whichever data source is active)
   const stateGeoRows = useMemo(() => {
