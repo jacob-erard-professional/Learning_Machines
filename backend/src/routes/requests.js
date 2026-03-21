@@ -305,6 +305,7 @@ router.post('/:id/approve', async (req, res) => {
       }
     }
 
+    // Note: staffingWarning is not surfaced in the .ics download response (accepted demo limitation)
     // Return .ics file as download for staff deployment events
     if (request.fulfillmentRoute === FulfillmentRoute.STAFF_DEPLOYMENT) {
       const icsContent = await generateIcsFile(updated);

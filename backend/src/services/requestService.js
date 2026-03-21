@@ -140,6 +140,7 @@ export async function createRequest(body) {
 
   // --- Step 8: Build and save full Request object ---
   // Status: NEEDS_REVIEW if AI failed or AI flagged a mismatch; PENDING otherwise
+  // Any staffingFlag value (insufficient_staff OR no_staff_data) forces NEEDS_REVIEW
   const status =
     !aiSucceeded || aiMismatch || aiDecision.intentMismatch || staffingFlag
       ? RequestStatus.NEEDS_REVIEW
