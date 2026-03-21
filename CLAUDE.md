@@ -239,3 +239,10 @@ The site will be hosted on [Render](https://render.com). Keep the following in m
 - NLP/AI features (tagging, validation, NLP for free-text) should use the Claude API — keep AI calls in `src/lib/ai.js` (or similar) so they're easy to mock during development
 - The calendar invite feature (for approved staffed events) should be a discrete, triggerable action — not automatic on submission
 - Mock data should represent realistic Community Health scenarios: health fairs, screenings, school events, farmer's markets, etc.
+
+## Active Technologies
+- Node.js 20 LTS (backend), React 18 + Vite 5 (frontend) + Express 4, React Router 6, Tailwind CSS 3, Zustand, (001-community-health-request-system)
+- In-memory JavaScript array (module-level); swap target is `lowdb` (001-community-health-request-system)
+
+## Recent Changes
+- 001-community-health-request-system: Added Node.js 20 LTS (backend), React 18 + Vite 5 (frontend) + Express 4, React Router 6, Tailwind CSS 3, Zustand,
