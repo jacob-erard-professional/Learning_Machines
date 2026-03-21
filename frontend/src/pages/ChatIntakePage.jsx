@@ -4,10 +4,11 @@
  * and navigates to the form with prefill data when ready.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiPost } from '../lib/api.js';
 import BlobShape from '../components/ui/BlobShape.jsx';
+import useSpeechDictation from '../hooks/useSpeechDictation.js';
 
 const INITIAL_MESSAGES = [
   {
@@ -32,6 +33,20 @@ export default function ChatIntakePage() {
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const navigate = useNavigate();
+
+  const handleTranscript = useCallback((text) => setInput(text), []);
+  const { isRecording, isPolishing, error: voiceError, startDictation, stopDictation } = useSpeechDictation({
+    polishPath: '/api/voice-intake/polish',
+    onTranscript: handleTranscript,
+  });
+
+  function handleMicToggle() {
+    if (isRecording) {
+      stopDictation();
+    } else {
+      startDictation(input);
+    }
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -223,7 +238,36 @@ export default function ChatIntakePage() {
             </button>
           </div>
         )}
+        {/* Voice status */}
+        {(isRecording || isPolishing) && (
+          <div className={`mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${isRecording ? 'border-red-200 bg-red-50 text-red-700' : 'border-brand-periwinkle-200 bg-brand-periwinkle-50 text-brand-purple-600'}`} aria-live="polite">
+            <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
+              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${isRecording ? 'bg-red-500' : 'bg-brand-purple-500'}`} />
+              <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${isRecording ? 'bg-red-500' : 'bg-brand-purple-500'}`} />
+            </span>
+            {isRecording ? 'Listening…' : 'Cleaning up…'}
+          </div>
+        )}
+        {voiceError && <p className="mb-1 text-xs text-red-500" role="alert">{voiceError}</p>}
         <div className="flex items-end gap-2">
+          {/* Mic button */}
+          <button
+            type="button"
+            aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
+            onClick={handleMicToggle}
+            disabled={loading || isPolishing}
+            className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500 disabled:opacity-40 disabled:cursor-not-allowed ${isRecording ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-brand-periwinkle-100 hover:bg-brand-periwinkle-200 text-brand-purple-600'}`}
+          >
+            {isRecording ? (
+              <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="10" height="10" rx="1" /></svg>
+            ) : (
+              <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M8 1a2.5 2.5 0 0 0-2.5 2.5v5a2.5 2.5 0 0 0 5 0v-5A2.5 2.5 0 0 0 8 1z" />
+                <path d="M4 8.5A4 4 0 0 0 12 8.5v-1h-1v1a3 3 0 0 1-6 0v-1H4v1z" />
+                <path d="M7.5 13.5v1.5h1v-1.5A5.5 5.5 0 0 0 13.5 8h-1A4.5 4.5 0 0 1 7.5 12.5v1z" />
+              </svg>
+            )}
+          </button>
           <label htmlFor="chat-input" className="sr-only">Type your message</label>
           <textarea
             id="chat-input"
@@ -232,8 +276,8 @@ export default function ChatIntakePage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Tell me about your event..."
-            disabled={loading}
+            placeholder={isRecording ? 'Listening…' : 'Type or speak your message…'}
+            disabled={loading || isRecording}
             className="flex-1 text-sm border border-gray-200 rounded-xl px-4 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 max-h-24 overflow-y-auto bg-gray-50 focus:bg-white transition-colors disabled:opacity-50"
             style={{ minHeight: '42px' }}
           />
