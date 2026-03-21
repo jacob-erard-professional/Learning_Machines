@@ -60,10 +60,10 @@ export default function CopilotSidebar({ open, onClose }) {
     setLoading(true);
 
     try {
-      const response = await apiPost('/api/copilot/query', { message: messageText });
+      const response = await apiPost('/api/copilot/query', { question: messageText });
       setMessages((prev) => [
         ...prev,
-        { id: Date.now() + 1, role: 'assistant', content: response.reply || response.message || 'I received your message.' },
+        { id: Date.now() + 1, role: 'assistant', content: response.answer || 'I received your message.' },
       ]);
     } catch {
       setMessages((prev) => [

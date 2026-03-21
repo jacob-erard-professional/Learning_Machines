@@ -68,7 +68,8 @@ export default function ConfirmationCard({ result, onSubmitAnother }) {
 
   const route = ROUTE_META[result.fulfillmentRoute] ?? ROUTE_META.mail;
   const confidence = result.aiConfidence ? CONFIDENCE_MAP[result.aiConfidence] : null;
-  const isPendingReview = result.aiStatus === 'failed' || result.status === 'needs_review';
+  const aiFailed = result.aiStatus === 'failed';
+  const flaggedForReview = result.status === 'needs_review' && !aiFailed;
 
   return (
     <Card className="max-w-2xl mx-auto overflow-hidden">
@@ -99,14 +100,26 @@ export default function ConfirmationCard({ result, onSubmitAnother }) {
           <StatusBadge status={result.status} size="md" />
         </div>
 
-        {/* Pending review notice */}
-        {isPendingReview && (
+        {/* AI failed — truly unavailable */}
+        {aiFailed && (
           <div className="bg-ihc-amber-100 border border-ihc-amber-300 rounded-lg px-4 py-3 flex items-start gap-2" role="alert">
             <svg className="w-5 h-5 text-ihc-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
             </svg>
             <p className="text-sm text-ihc-amber-800">
               AI classification is unavailable. Your request has been flagged for <strong>admin review</strong> and will be processed manually.
+            </p>
+          </div>
+        )}
+
+        {/* AI ran but flagged a discrepancy */}
+        {flaggedForReview && (
+          <div className="bg-ihc-amber-100 border border-ihc-amber-300 rounded-lg px-4 py-3 flex items-start gap-2" role="alert">
+            <svg className="w-5 h-5 text-ihc-amber-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+            </svg>
+            <p className="text-sm text-ihc-amber-800">
+              AI detected a potential discrepancy in your request details. An admin will review and confirm the routing before processing.
             </p>
           </div>
         )}
@@ -124,7 +137,7 @@ export default function ConfirmationCard({ result, onSubmitAnother }) {
         </div>
 
         {/* AI metrics row */}
-        {!isPendingReview && (confidence || result.aiTags?.length > 0) && (
+        {!aiFailed && (confidence || result.aiTags?.length > 0) && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Confidence bar */}
             {confidence && (
