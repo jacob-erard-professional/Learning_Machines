@@ -73,7 +73,7 @@ function dotRadius(total) {
 /** Map a city flag to a dot fill color */
 function dotColor(flag) {
   if (flag === 'high_demand') return '#F5C518';  // brand-yellow
-  if (flag === 'underserved') return '#A8B4F8';   // brand-periwinkle-400
+  if (flag === 'underserved') return '#ef4444';   // red-500
   return '#6B2FD9';                               // brand-purple
 }
 
@@ -249,7 +249,7 @@ export default function ChoroplethMap({ cityData = [], selectedState = null, onS
           {[
             { color: '#6B2FD9', label: 'Normal' },
             { color: '#F5C518', label: 'High demand' },
-            { color: '#A8B4F8', label: 'Underserved' },
+            { color: '#ef4444', label: 'Underserved' },
           ].map((item) => (
             <span key={item.label} className="flex items-center gap-1">
               <span

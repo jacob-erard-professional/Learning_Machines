@@ -27,7 +27,7 @@ const COLORS = {
   medium:      '#c0c5f7', // brand-periwinkle-300
   high:        '#6B2FD9', // brand-purple-500
   highDemand:  '#F5C518', // brand-yellow-500
-  underserved: '#A8B4F8', // brand-periwinkle-400
+  underserved: '#ef4444', // red-500
 };
 
 const LEGEND = [
@@ -46,7 +46,7 @@ const LEGEND = [
  */
 function tileStyle(row) {
   if (row.flag === 'high_demand') return { bg: COLORS.highDemand, color: '#1A1A4E' };
-  if (row.flag === 'underserved') return { bg: COLORS.underserved, color: '#1A1A4E' };
+  if (row.flag === 'underserved') return { bg: COLORS.underserved, color: '#fff' };
   const n = row.totalRequestCount ?? 0;
   if (n === 0)  return { bg: COLORS.none,   color: '#6b7280' };
   if (n <= 2)   return { bg: COLORS.low,    color: '#1A1A4E' };
@@ -146,7 +146,7 @@ export default function GeoEquityView() {
             <SummaryCard label="Total ZIP Codes" value={summary.length} color="text-gray-900" />
             <SummaryCard label="In Service Area" value={coverage.inServiceArea ?? 0} color="text-brand-purple-600" />
             <SummaryCard label="High Demand" value={highDemandCount} color="text-brand-yellow-600" indicator="high_demand" />
-            <SummaryCard label="Underserved" value={underservedCount} color="text-brand-periwinkle-400" indicator="underserved" />
+            <SummaryCard label="Underserved" value={underservedCount} color="text-red-500" indicator="underserved" />
           </div>
 
           {/* Choropleth map */}
@@ -220,7 +220,7 @@ export default function GeoEquityView() {
                         className={[
                           'transition-colors',
                           isHighDemand ? 'border-l-4 border-l-brand-yellow-500 bg-brand-yellow-50/40 hover:bg-brand-yellow-50' : '',
-                          isUnderserved ? 'border-l-4 border-l-brand-periwinkle-400 bg-brand-periwinkle-50/30 hover:bg-brand-periwinkle-50' : '',
+                          isUnderserved ? 'border-l-4 border-l-red-400 bg-red-50/40 hover:bg-red-50' : '',
                           !isHighDemand && !isUnderserved ? 'border-l-4 border-l-transparent hover:bg-gray-50' : '',
                         ].join(' ')}
                       >
@@ -263,10 +263,10 @@ export default function GeoEquityView() {
                           )}
                           {isUnderserved && (
                             <span
-                              className="inline-flex items-center gap-1 text-xs font-semibold bg-brand-periwinkle-100 text-brand-navy-500 px-2.5 py-1 rounded-full border border-brand-periwinkle-200"
+                              className="inline-flex items-center gap-1 text-xs font-semibold bg-red-50 text-red-700 px-2.5 py-1 rounded-full border border-red-200"
                               aria-label="Flag: Underserved"
                             >
-                              <span className="w-1.5 h-1.5 rounded-full bg-brand-periwinkle-400" aria-hidden="true" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500" aria-hidden="true" />
                               UNDERSERVED
                             </span>
                           )}
@@ -287,7 +287,7 @@ export default function GeoEquityView() {
             <h2 className="text-sm font-semibold text-gray-700 mb-3">Request Density Heatmap</h2>
             <p className="text-xs text-gray-500 mb-4">
               Each block represents a ZIP code. Color indicates total request volume.
-              Amber = high demand · Periwinkle = underserved · Purple scale = volume.
+              Amber = high demand · Red = underserved · Purple scale = volume.
             </p>
             <div className="flex flex-wrap gap-2" role="img" aria-label="ZIP code demand heatmap">
               {sortedData.map((row) => {
@@ -366,7 +366,7 @@ function SummaryCard({ label, value, color, indicator }) {
           <span className="w-2 h-2 rounded-full bg-brand-yellow-500 mt-0.5" aria-hidden="true" />
         )}
         {indicator === 'underserved' && (
-          <span className="w-2 h-2 rounded-full bg-brand-periwinkle-400 mt-0.5" aria-hidden="true" />
+          <span className="w-2 h-2 rounded-full bg-red-500 mt-0.5" aria-hidden="true" />
         )}
       </div>
       <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>

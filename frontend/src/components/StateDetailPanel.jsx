@@ -133,9 +133,9 @@ export default function StateDetailPanel({ stateAbbr, requests, geoRows, onClose
             )}
             {underservedCities.length > 0 && (
               <div className="flex items-start gap-2">
-                <span className="mt-0.5 w-2 h-2 rounded-full bg-brand-periwinkle-400 flex-shrink-0" aria-hidden="true" />
+                <span className="mt-0.5 w-2 h-2 rounded-full bg-red-500 flex-shrink-0" aria-hidden="true" />
                 <p className="text-xs text-gray-700">
-                  <span className="font-semibold text-brand-navy-500">Underserved: </span>
+                  <span className="font-semibold text-red-600">Underserved: </span>
                   {underservedCities.join(', ')}
                 </p>
               </div>
