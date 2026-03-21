@@ -12,6 +12,7 @@ import { google } from 'googleapis';
 const REQUESTS_SHEET_NAME = process.env.GOOGLE_SHEETS_REQUESTS_SHEET_NAME ?? 'Requests';
 const OVERRIDES_SHEET_NAME =
   process.env.GOOGLE_SHEETS_ADMIN_OVERRIDES_SHEET_NAME ?? 'AdminOverrides';
+const STAFF_SHEET_NAME = process.env.GOOGLE_SHEETS_STAFF_SHEET_NAME ?? 'Staff';
 
 const REQUEST_HEADERS = [
   'id',
@@ -30,6 +31,27 @@ const OVERRIDE_HEADERS = [
   'timestamp',
   'json',
 ];
+
+const STAFF_COLUMNS = [
+  'staffId', 'zipCode', 'name', 'email', 'phone',
+  'role', 'certifications', 'availableWeekdays', 'active', 'yearsExperience',
+];
+
+function parseStaffRows(rows = []) {
+  if (rows.length < 2) return [];
+  return rows.slice(1).map((row) => ({
+    staffId: row[0] ?? '',
+    zipCode: row[1] ?? '',
+    name: row[2] ?? '',
+    email: row[3] ?? '',
+    phone: row[4] ?? '',
+    role: row[5] ?? '',
+    certifications: (row[6] ?? '').split(';').map((s) => s.trim()).filter(Boolean),
+    availableWeekdays: (row[7] ?? '').split(';').map((s) => s.trim()).filter(Boolean),
+    active: (row[8] ?? '').trim().toUpperCase() === 'TRUE',
+    yearsExperience: Number(row[9] ?? 0) || 0,
+  })).filter((s) => s.staffId);
+}
 
 function getSheetsConfig() {
   return {
@@ -176,4 +198,20 @@ export async function saveStateToGoogleSheets({ requests, adminOverrides }) {
       buildOverrideRows(adminOverrides)
     ),
   ]);
+}
+
+export async function loadStaffFromGoogleSheets() {
+  const config = getSheetsConfig();
+  const sheets = await getSheetsClient();
+
+  try {
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: config.spreadsheetId,
+      range: `${STAFF_SHEET_NAME}!A:J`,
+    });
+    return parseStaffRows(res.data.values ?? []);
+  } catch (err) {
+    console.error('[googleSheetsStore] Failed to load Staff sheet:', err.message);
+    return [];
+  }
 }
