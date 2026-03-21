@@ -71,6 +71,16 @@ const REQUEST_TYPES = [
   },
 ];
 
+// RFC 5322 simplified — covers the vast majority of real addresses
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// US/Canada phone: optional +1 prefix, then 10 digits with common separators
+// Accepts: 8015550100, 801-555-0100, (801) 555-0100, +18015550100, +1 801.555.0100
+const PHONE_REGEX = /^\+?1?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
+
+// ZIP: 5-digit (84101) or ZIP+4 (84101-1234)
+const ZIP_REGEX = /^\d{5}(-\d{4})?$/;
+
 /** Validate a single field and return an error string or null. */
 function validateField(name, value) {
   switch (name) {
@@ -78,10 +88,16 @@ function validateField(name, value) {
       return value.trim() ? null : 'Full name is required.';
     case 'requestorEmail':
       if (!value.trim()) return 'Email address is required.';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Must be a valid email address.';
+      if (!EMAIL_REGEX.test(value.trim())) return 'Must be a valid email address (e.g. jane@example.org).';
+      return null;
+    case 'alternateContactEmail':
+      // Optional — only validate format if something was entered
+      if (value.trim() && !EMAIL_REGEX.test(value.trim())) return 'Must be a valid email address.';
       return null;
     case 'requestorPhone':
-      return value.trim() ? null : 'Phone number is required.';
+      if (!value.trim()) return 'Phone number is required.';
+      if (!PHONE_REGEX.test(value.trim())) return 'Must be a valid US phone number (e.g. 801-555-0100).';
+      return null;
     case 'eventName':
       return value.trim() ? null : 'Event name is required.';
     case 'eventDate':
@@ -92,7 +108,7 @@ function validateField(name, value) {
       return value.trim() ? null : 'City is required.';
     case 'eventZip':
       if (!value.trim()) return 'ZIP code is required.';
-      if (!/^\d{5}$/.test(value.trim())) return 'ZIP code must be exactly 5 digits.';
+      if (!ZIP_REGEX.test(value.trim())) return 'Must be a 5-digit ZIP (84101) or ZIP+4 (84101-1234).';
       return null;
     case 'requestType':
       return value ? null : 'Please select a request type.';
@@ -368,7 +384,12 @@ export default function RequestForm() {
               />
             </FormField>
 
-            <FormField id="alternateContactEmail" label="Alternate Contact Email">
+            <FormField
+              id="alternateContactEmail"
+              label="Alternate Contact Email"
+              error={errors.alternateContactEmail}
+              touched={touched.alternateContactEmail}
+            >
               <input
                 id="alternateContactEmail"
                 name="alternateContactEmail"
@@ -376,7 +397,10 @@ export default function RequestForm() {
                 autoComplete="email"
                 value={form.alternateContactEmail}
                 onChange={handleChange}
-                className={inputClasses(false)}
+                onBlur={handleBlur}
+                aria-invalid={touched.alternateContactEmail && !!errors.alternateContactEmail}
+                aria-describedby={errors.alternateContactEmail && touched.alternateContactEmail ? 'alternateContactEmail-error' : undefined}
+                className={inputClasses(touched.alternateContactEmail && !!errors.alternateContactEmail)}
                 placeholder="Optional"
               />
             </FormField>
@@ -484,8 +508,8 @@ export default function RequestForm() {
                 name="eventZip"
                 type="text"
                 inputMode="numeric"
-                pattern="\d{5}"
-                maxLength={5}
+                pattern="\d{5}(-\d{4})?"
+                maxLength={10}
                 value={form.eventZip}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -493,7 +517,7 @@ export default function RequestForm() {
                 aria-invalid={touched.eventZip && !!errors.eventZip}
                 aria-describedby={errors.eventZip && touched.eventZip ? 'eventZip-error' : undefined}
                 className={inputClasses(touched.eventZip && !!errors.eventZip)}
-                placeholder="84101"
+                placeholder="84101 or 84101-1234"
               />
             </FormField>
 
