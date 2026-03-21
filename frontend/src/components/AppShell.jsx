@@ -1,31 +1,43 @@
 /**
- * @fileoverview IHC-branded application shell — dark theme.
- * Header, skip-to-content, responsive nav, footer. Fully keyboard accessible.
+ * @fileoverview IHC-branded application shell with header, navigation,
+ * and skip-to-content link. Fully keyboard accessible.
  */
 
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth.js';
 
+/** Navigation items for community members (guest role) */
 const GUEST_NAV = [
   { label: 'Submit Request', to: '/', end: true },
-  { label: 'Chat Intake',    to: '/chat' },
+  { label: 'Chat Intake', to: '/chat' },
 ];
 
+/** Navigation items for admins */
 const ADMIN_NAV = [
-  { label: 'Dashboard',   to: '/admin',            end: true },
-  { label: 'Analytics',   to: '/admin/analytics' },
-  { label: 'Geo Equity',  to: '/admin/geo' },
-  { label: 'Simulation',  to: '/admin/simulate' },
+  { label: 'Admin Dashboard', to: '/admin', end: true },
+  { label: 'Analytics', to: '/admin/analytics' },
+  { label: 'Geo Equity', to: '/admin/geo' },
+  { label: 'Simulation', to: '/admin/simulate' },
 ];
 
+/**
+ * Full IHC-branded application shell.
+ * Includes skip-to-content, branded header, responsive navigation,
+ * and main content outlet.
+ *
+ * @returns {JSX.Element}
+ */
 export default function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   const { role, logout } = useAuth();
 
-  if (role === null) return <Navigate to="/login" replace />;
+  // Redirect unauthenticated users to login
+  if (role === null) {
+    return <Navigate to="/login" replace />;
+  }
 
   const navItems = role === 'admin' ? ADMIN_NAV : GUEST_NAV;
 
@@ -35,104 +47,97 @@ export default function AppShell() {
   }
 
   // Close mobile menu on route change
-  useState(() => { setMobileOpen(false); }, [location.pathname]);
+  useState(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: 'var(--bg-base)' }}
-    >
-      {/* Skip to content */}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Skip to content — screen reader and keyboard accessible */}
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
 
-      {/* ── Header ── */}
-      <header
-        className="sticky top-0 z-30"
-        role="banner"
-        style={{
-          background: 'rgba(11,13,20,0.85)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid var(--border-sub)',
-        }}
-      >
+      {/* Header */}
+      <header className="bg-white text-brand-navy-500 shadow-sm border-b border-gray-100" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-
-            {/* Logo mark + wordmark */}
+          <div className="flex items-center justify-between h-16">
+            {/* Logo + wordmark */}
             <div className="flex items-center gap-3 min-w-0">
+              {/* IHC logo mark */}
               <div
-                className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: 'rgba(168,180,248,0.1)', border: '1px solid rgba(168,180,248,0.2)' }}
+                className="flex-shrink-0 w-9 h-9 rounded-lg bg-brand-periwinkle-50 border border-brand-periwinkle-200 flex items-center justify-center"
                 aria-hidden="true"
               >
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-                  <rect x="1" y="6" width="16" height="6" rx="3" fill="var(--accent-blue)" />
-                  <rect x="6" y="1" width="6" height="16" rx="3" fill="var(--accent-blue)" />
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+                  <rect x="1" y="8" width="20" height="6" rx="3" fill="#6B2FD9" />
+                  <rect x="8" y="1" width="6" height="20" rx="3" fill="#6B2FD9" />
                 </svg>
               </div>
               <div className="min-w-0">
-                <div
-                  className="font-semibold text-sm leading-tight truncate"
-                  style={{ color: 'var(--txt-hi)', fontFamily: 'Syne, sans-serif' }}
-                >
+                <div className="font-semibold text-base leading-tight tracking-tight truncate text-brand-navy-500">
                   Intermountain Healthcare
                 </div>
-                <div className="text-[10px] leading-tight truncate" style={{ color: 'var(--txt-lo)' }}>
-                  Community Health
+                <div className="text-brand-navy-400 text-xs leading-tight truncate">
+                  Community Health Request System
                 </div>
               </div>
             </div>
 
             {/* Desktop nav */}
-            <nav className="hidden md:flex items-center gap-0.5" aria-label="Main navigation">
+            <nav
+              className="hidden md:flex items-center gap-1"
+              aria-label="Main navigation"
+            >
               {navItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) =>
-                    'px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 ' +
-                    (isActive
-                      ? 'text-[var(--accent-blue)] bg-[rgba(168,180,248,0.1)]'
-                      : 'text-[var(--txt-mid)] hover:text-[var(--txt-hi)] hover:bg-white/[0.05]')
+                    [
+                      'px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150',
+                      'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500',
+                      isActive
+                        ? 'bg-brand-periwinkle-100 text-brand-purple-600 font-semibold'
+                        : 'text-brand-navy-500 hover:bg-brand-periwinkle-50 hover:text-brand-purple-600',
+                    ].join(' ')
                   }
                 >
                   {item.label}
                 </NavLink>
               ))}
-
-              {/* Divider */}
-              <span className="mx-2 h-4 w-px" style={{ background: 'var(--border-sub)' }} aria-hidden="true" />
-
               <button
                 type="button"
                 onClick={handleLogout}
-                className="px-3 py-1.5 rounded-md text-xs font-medium transition-colors duration-150"
-                style={{ color: 'var(--txt-lo)' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--txt-hi)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--txt-lo)'; e.currentTarget.style.background = 'transparent'; }}
+                className="ml-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 text-brand-navy-500 hover:bg-brand-periwinkle-50 hover:text-brand-purple-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
               >
-                Sign out
+                Sign Out
               </button>
             </nav>
 
             {/* Mobile hamburger */}
             <button
               type="button"
-              className="md:hidden p-2 rounded-md transition-colors"
-              style={{ color: 'var(--txt-mid)' }}
-              onClick={() => setMobileOpen((p) => !p)}
+              className="md:hidden p-2 rounded-md text-brand-navy-400 hover:text-brand-purple-600 hover:bg-brand-periwinkle-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
+              onClick={() => setMobileOpen((prev) => !prev)}
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav"
               aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                {mobileOpen
-                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                {mobileOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                )}
               </svg>
             </button>
           </div>
@@ -142,8 +147,7 @@ export default function AppShell() {
         {mobileOpen && (
           <nav
             id="mobile-nav"
-            className="md:hidden px-4 pb-4 pt-2"
-            style={{ borderTop: '1px solid var(--border-sub)' }}
+            className="md:hidden border-t border-gray-100 bg-white px-4 pb-3 pt-2"
             aria-label="Mobile navigation"
           >
             {navItems.map((item) => (
@@ -153,10 +157,13 @@ export default function AppShell() {
                 end={item.end}
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  'block px-3 py-2 rounded-md text-sm font-medium mb-0.5 transition-colors ' +
-                  (isActive
-                    ? 'text-[var(--accent-blue)] bg-[rgba(168,180,248,0.1)]'
-                    : 'text-[var(--txt-mid)] hover:text-[var(--txt-hi)] hover:bg-white/[0.05]')
+                  [
+                    'block px-3 py-2 rounded-md text-sm font-medium mb-1 transition-colors',
+                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500',
+                    isActive
+                      ? 'bg-brand-periwinkle-100 text-brand-purple-600 font-semibold'
+                      : 'text-brand-navy-500 hover:bg-brand-periwinkle-50 hover:text-brand-purple-600',
+                  ].join(' ')
                 }
               >
                 {item.label}
@@ -165,29 +172,24 @@ export default function AppShell() {
             <button
               type="button"
               onClick={handleLogout}
-              className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium mt-1 transition-colors"
-              style={{ color: 'var(--txt-lo)' }}
+              className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium mt-1 transition-colors text-brand-navy-500 hover:bg-brand-periwinkle-50 hover:text-brand-purple-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-purple-500"
             >
-              Sign out
+              Sign Out
             </button>
           </nav>
         )}
       </header>
 
-      {/* ── Main content ── */}
+      {/* Main content */}
       <main id="main-content" className="flex-1 focus:outline-none" tabIndex="-1">
         <Outlet />
       </main>
 
-      {/* ── Footer ── */}
-      <footer
-        className="py-5 mt-auto"
-        role="contentinfo"
-        style={{ borderTop: '1px solid var(--border-sub)' }}
-      >
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 py-4 mt-auto" role="contentinfo">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-[11px]" style={{ color: 'var(--txt-lo)' }}>
-            &copy; {new Date().getFullYear()} Intermountain Healthcare — Community Health Program
+          <p className="text-center text-xs text-gray-500">
+            &copy; {new Date().getFullYear()} Intermountain Healthcare. Community Health Program.
           </p>
         </div>
       </footer>
