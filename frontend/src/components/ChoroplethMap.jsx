@@ -127,8 +127,10 @@ export default function ChoroplethMap({ cityData = [], selectedState = null, onS
           <Geographies geography={GEO_URL}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const isService = SERVICE_STATE_SET.has(geo.id);
-                const abbr = SERVICE_STATES[geo.id];
+                // geo.id is numeric in us-atlas TopoJSON; zero-pad to match FIPS strings
+                const geoId = String(geo.id).padStart(2, '0');
+                const isService = SERVICE_STATE_SET.has(geoId);
+                const abbr = SERVICE_STATES[geoId];
                 const count = abbr ? (stateTotals[abbr] ?? 0) : 0;
                 const isSelected = abbr === selectedState;
                 return (
