@@ -60,8 +60,8 @@ export default function StateDetailPanel({ stateAbbr, requests, geoRows, onClose
   const review   = requests.filter((r) => r.status === 'needs_review').length;
   const rejected = requests.filter((r) => r.status === 'rejected').length;
 
-  const highDemandCities = geoRows.filter((r) => r.flag === 'high_demand').map((r) => r.city);
-  const underservedCities = geoRows.filter((r) => r.flag === 'underserved').map((r) => r.city);
+  const highDemandCities = [...new Set(geoRows.filter((r) => r.flag === 'high_demand').map((r) => r.city))];
+  const underservedCities = [...new Set(geoRows.filter((r) => r.flag === 'underserved').map((r) => r.city))];
 
   return (
     <>
