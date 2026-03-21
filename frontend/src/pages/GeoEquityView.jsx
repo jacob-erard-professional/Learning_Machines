@@ -9,6 +9,7 @@ import { apiGet } from '../lib/api.js';
 import { mockGeoData } from '../data/mockRequests.js';
 import LoadingSpinner from '../components/ui/LoadingSpinner.jsx';
 import Card from '../components/ui/Card.jsx';
+import ChoroplethMap from '../components/ChoroplethMap.jsx';
 
 // Brand hex values used for heatmap tiles.
 // Inline styles bypass Tailwind's purge — guaranteed to render correctly.
@@ -123,6 +124,16 @@ export default function GeoEquityView() {
             <SummaryCard label="High Demand" value={highDemandCount} color="text-brand-yellow-600" indicator="high_demand" />
             <SummaryCard label="Underserved" value={underservedCount} color="text-brand-periwinkle-400" indicator="underserved" />
           </div>
+
+          {/* Choropleth map */}
+          <Card className="p-5">
+            <h2 className="text-sm font-semibold text-gray-700 mb-1">Service Area Map</h2>
+            <p className="text-xs text-gray-500 mb-4">
+              States shaded by total request volume. Dots mark cities — size reflects volume, color reflects flag status.
+              Hover for details.
+            </p>
+            <ChoroplethMap cityData={summary} />
+          </Card>
 
           {/* Sortable table */}
           <Card>

@@ -370,18 +370,42 @@ export const mockRequests = [
 /** Mock geo analytics data */
 export const mockGeoData = {
   summary: [
-    { zip: '84101', city: 'Salt Lake City', state: 'UT', isInServiceArea: true, requestCount30d: 8, totalRequestCount: 24, flag: 'high_demand' },
-    { zip: '84401', city: 'Ogden', state: 'UT', isInServiceArea: true, requestCount30d: 3, totalRequestCount: 9, flag: null },
-    { zip: '84601', city: 'Provo', state: 'UT', isInServiceArea: true, requestCount30d: 5, totalRequestCount: 15, flag: 'high_demand' },
-    { zip: '84532', city: 'Moab', state: 'UT', isInServiceArea: true, requestCount30d: 1, totalRequestCount: 2, flag: 'underserved' },
-    { zip: '89501', city: 'Reno', state: 'NV', isInServiceArea: true, requestCount30d: 0, totalRequestCount: 1, flag: 'underserved' },
-    { zip: '89101', city: 'Las Vegas', state: 'NV', isInServiceArea: true, requestCount30d: 6, totalRequestCount: 11, flag: 'high_demand' },
-    { zip: '83702', city: 'Boise', state: 'ID', isInServiceArea: true, requestCount30d: 2, totalRequestCount: 4, flag: null },
-    { zip: '02101', city: 'Boston', state: 'MA', isInServiceArea: false, requestCount30d: 1, totalRequestCount: 1, flag: null },
-    { zip: '86033', city: 'Kayenta', state: 'AZ', isInServiceArea: false, requestCount30d: 1, totalRequestCount: 1, flag: null },
-    { zip: '84104', city: 'Salt Lake City (West)', state: 'UT', isInServiceArea: true, requestCount30d: 4, totalRequestCount: 7, flag: null },
+    // Utah
+    { zip: '84101', city: 'Salt Lake City', state: 'UT', lat: 40.7608, lng: -111.8910, isInServiceArea: true, requestCount30d: 8, totalRequestCount: 24, flag: 'high_demand' },
+    { zip: '84401', city: 'Ogden', state: 'UT', lat: 41.2230, lng: -111.9738, isInServiceArea: true, requestCount30d: 3, totalRequestCount: 9, flag: null },
+    { zip: '84601', city: 'Provo', state: 'UT', lat: 40.2338, lng: -111.6585, isInServiceArea: true, requestCount30d: 5, totalRequestCount: 15, flag: 'high_demand' },
+    { zip: '84532', city: 'Moab', state: 'UT', lat: 38.5733, lng: -109.5498, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 2, flag: 'underserved' },
+    { zip: '84104', city: 'Salt Lake City (West)', state: 'UT', lat: 40.7282, lng: -112.0013, isInServiceArea: true, requestCount30d: 4, totalRequestCount: 7, flag: null },
+    { zip: '84770', city: 'St. George', state: 'UT', lat: 37.1041, lng: -113.5841, isInServiceArea: true, requestCount30d: 2, totalRequestCount: 5, flag: null },
+    // Idaho
+    { zip: '83702', city: 'Boise', state: 'ID', lat: 43.6150, lng: -116.2023, isInServiceArea: true, requestCount30d: 2, totalRequestCount: 4, flag: null },
+    { zip: '83401', city: 'Idaho Falls', state: 'ID', lat: 43.4917, lng: -112.0338, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 3, flag: 'underserved' },
+    { zip: '83301', city: 'Twin Falls', state: 'ID', lat: 42.5630, lng: -114.4609, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 2, flag: null },
+    // Nevada
+    { zip: '89501', city: 'Reno', state: 'NV', lat: 39.5296, lng: -119.8138, isInServiceArea: true, requestCount30d: 0, totalRequestCount: 1, flag: 'underserved' },
+    { zip: '89101', city: 'Las Vegas', state: 'NV', lat: 36.1699, lng: -115.1398, isInServiceArea: true, requestCount30d: 6, totalRequestCount: 11, flag: 'high_demand' },
+    { zip: '89701', city: 'Carson City', state: 'NV', lat: 39.1638, lng: -119.7674, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 2, flag: null },
+    // Colorado
+    { zip: '80202', city: 'Denver', state: 'CO', lat: 39.7392, lng: -104.9903, isInServiceArea: true, requestCount30d: 7, totalRequestCount: 19, flag: 'high_demand' },
+    { zip: '80903', city: 'Colorado Springs', state: 'CO', lat: 38.8339, lng: -104.8214, isInServiceArea: true, requestCount30d: 3, totalRequestCount: 8, flag: null },
+    { zip: '81501', city: 'Grand Junction', state: 'CO', lat: 39.0639, lng: -108.5506, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 3, flag: 'underserved' },
+    { zip: '80521', city: 'Fort Collins', state: 'CO', lat: 40.5853, lng: -105.0844, isInServiceArea: true, requestCount30d: 2, totalRequestCount: 5, flag: null },
+    // Montana
+    { zip: '59101', city: 'Billings', state: 'MT', lat: 45.7833, lng: -108.5007, isInServiceArea: true, requestCount30d: 2, totalRequestCount: 5, flag: null },
+    { zip: '59801', city: 'Missoula', state: 'MT', lat: 46.8721, lng: -113.9940, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 3, flag: 'underserved' },
+    { zip: '59401', city: 'Great Falls', state: 'MT', lat: 47.5002, lng: -111.3008, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 2, flag: null },
+    // Wyoming
+    { zip: '82001', city: 'Cheyenne', state: 'WY', lat: 41.1400, lng: -104.8202, isInServiceArea: true, requestCount30d: 2, totalRequestCount: 4, flag: null },
+    { zip: '82601', city: 'Casper', state: 'WY', lat: 42.8666, lng: -106.3131, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 2, flag: 'underserved' },
+    // Kansas
+    { zip: '67202', city: 'Wichita', state: 'KS', lat: 37.6872, lng: -97.3301, isInServiceArea: true, requestCount30d: 3, totalRequestCount: 7, flag: null },
+    { zip: '66601', city: 'Topeka', state: 'KS', lat: 39.0558, lng: -95.6890, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 3, flag: 'underserved' },
+    { zip: '66044', city: 'Lawrence', state: 'KS', lat: 38.9717, lng: -95.2353, isInServiceArea: true, requestCount30d: 1, totalRequestCount: 2, flag: null },
+    // Outside service area (kept for table)
+    { zip: '02101', city: 'Boston', state: 'MA', lat: 42.3601, lng: -71.0589, isInServiceArea: false, requestCount30d: 1, totalRequestCount: 1, flag: null },
+    { zip: '86033', city: 'Kayenta', state: 'AZ', lat: 36.7156, lng: -110.2547, isInServiceArea: false, requestCount30d: 1, totalRequestCount: 1, flag: null },
   ],
-  serviceAreaCoverage: { total: 10, inServiceArea: 8, outsideServiceArea: 2 },
+  serviceAreaCoverage: { total: 25, inServiceArea: 23, outsideServiceArea: 2 },
 };
 
 /** Mock analytics trend data */
