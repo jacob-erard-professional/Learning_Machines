@@ -6,6 +6,8 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth.js';
+import IHCLogo from './ui/IHCLogo.jsx';
+import BlobShape from './ui/BlobShape.jsx';
 
 /** Navigation items for community members (guest role) */
 const GUEST_NAV = [
@@ -63,25 +65,8 @@ export default function AppShell() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo + wordmark */}
-            <div className="flex items-center gap-3 min-w-0">
-              {/* IHC logo mark */}
-              <div
-                className="flex-shrink-0 w-9 h-9 rounded-lg bg-brand-periwinkle-50 border border-brand-periwinkle-200 flex items-center justify-center"
-                aria-hidden="true"
-              >
-                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-                  <rect x="1" y="8" width="20" height="6" rx="3" fill="#6B2FD9" />
-                  <rect x="8" y="1" width="6" height="20" rx="3" fill="#6B2FD9" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <div className="font-semibold text-base leading-tight tracking-tight truncate text-brand-navy-500">
-                  Intermountain Healthcare
-                </div>
-                <div className="text-brand-navy-400 text-xs leading-tight truncate">
-                  Community Health Request System
-                </div>
-              </div>
+            <div className="flex items-center min-w-0">
+              <IHCLogo size="md" />
             </div>
 
             {/* Desktop nav */}
@@ -186,11 +171,119 @@ export default function AppShell() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-4 mt-auto" role="contentinfo">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Intermountain Healthcare. Community Health Program.
-          </p>
+      <footer className="relative overflow-hidden bg-brand-navy-500 text-white mt-auto" style={{ backgroundColor: '#1A1A4E', color: 'white' }} role="contentinfo">
+        {/* Decorative blob shapes */}
+        <BlobShape
+          variant={2}
+          color="#E91E8C"
+          className="absolute blob-float-slow"
+          style={{ width: '220px', height: '220px', top: '-60px', right: '-40px', opacity: 0.10, pointerEvents: 'none' }}
+        />
+        <BlobShape
+          variant={5}
+          color="#F5C518"
+          className="absolute blob-float"
+          style={{ width: '160px', height: '160px', bottom: '-50px', left: '10%', opacity: 0.08, pointerEvents: 'none' }}
+        />
+        <BlobShape
+          variant={4}
+          color="#6B2FD9"
+          className="absolute blob-float-med"
+          style={{ width: '180px', height: '180px', top: '-40px', left: '40%', opacity: 0.09, pointerEvents: 'none' }}
+        />
+        <BlobShape
+          variant={1}
+          color="#A8B4F8"
+          className="absolute blob-float-slow"
+          style={{ width: '140px', height: '140px', bottom: '-30px', right: '20%', opacity: 0.08, pointerEvents: 'none' }}
+        />
+
+        {/* 3-column grid */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
+            {/* Column 1: Brand */}
+            <div>
+              <IHCLogo size="sm" darkMode />
+              <p className="mt-3 text-sm text-white/60 leading-relaxed max-w-xs">
+                Bringing community health resources to the people who need them most.
+              </p>
+            </div>
+
+            {/* Column 2: For Patients */}
+            <nav aria-label="Footer navigation for patients">
+              <p className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">
+                For Patients
+              </p>
+              <ul className="space-y-2">
+                <li>
+                  <NavLink
+                    to="/"
+                    end
+                    className="text-white/70 hover:text-white text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-periwinkle-400 rounded"
+                  >
+                    Submit a Request
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/chat"
+                    className="text-white/70 hover:text-white text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-periwinkle-400 rounded"
+                  >
+                    Chat with AI Assistant
+                  </NavLink>
+                </li>
+              </ul>
+            </nav>
+
+            {/* Column 3: For Admins */}
+            <nav aria-label="Footer navigation for admins">
+              <p className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">
+                For Admins
+              </p>
+              <ul className="space-y-2">
+                <li>
+                  <NavLink
+                    to="/admin"
+                    end
+                    className="text-white/70 hover:text-white text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-periwinkle-400 rounded"
+                  >
+                    Admin Dashboard
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/admin/analytics"
+                    className="text-white/70 hover:text-white text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-periwinkle-400 rounded"
+                  >
+                    Analytics
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/admin/geo"
+                    className="text-white/70 hover:text-white text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-periwinkle-400 rounded"
+                  >
+                    Geo Equity
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to="/admin/simulate"
+                    className="text-white/70 hover:text-white text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-periwinkle-400 rounded"
+                  >
+                    Simulation
+                  </NavLink>
+                </li>
+              </ul>
+            </nav>
+          </div>
+
+          {/* Bottom copyright strip */}
+          <div className="border-t border-white/10 pt-4">
+            <p className="text-center text-xs text-brand-periwinkle-200">
+              &copy; {new Date().getFullYear()} Intermountain Healthcare. Community Health Program.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

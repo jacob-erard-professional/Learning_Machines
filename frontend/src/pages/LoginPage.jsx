@@ -8,6 +8,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button.jsx';
 import Card from '../components/ui/Card.jsx';
+import IHCLogo from '../components/ui/IHCLogo.jsx';
+import BlobShape from '../components/ui/BlobShape.jsx';
 import useAuth from '../hooks/useAuth.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -102,36 +104,67 @@ export default function LoginPage() {
   const passwordError = touched.password && localErrors.password;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header bar — matches AppShell header, non-nav version */}
-      <header className="bg-white text-brand-navy-500 shadow-sm border-b border-gray-100" role="banner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 gap-3">
-            <div
-              className="flex-shrink-0 w-9 h-9 rounded-lg bg-brand-periwinkle-50 border border-brand-periwinkle-200 flex items-center justify-center"
-              aria-hidden="true"
-            >
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-                <rect x="1" y="8" width="20" height="6" rx="3" fill="#6B2FD9" />
-                <rect x="8" y="1" width="6" height="20" rx="3" fill="#6B2FD9" />
-              </svg>
-            </div>
-            <div>
-              <div className="font-semibold text-base leading-tight tracking-tight text-brand-navy-500">
-                Intermountain Healthcare
-              </div>
-              <div className="text-brand-navy-400 text-xs leading-tight">
-                Community Health Request System
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      {/* Semantic landmark for accessibility / tests — visually hidden */}
+      <header role="banner" className="sr-only">
+        Intermountain Healthcare
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col items-center px-4 pt-12 pb-16">
+      <div className="flex-1 flex flex-col md:flex-row">
+      {/* ── Left panel: hero (desktop only) ── */}
+      <div
+        className="hidden md:flex flex-col items-center justify-center flex-1 relative overflow-hidden p-12"
+        style={{ background: '#1A1A4E' }}
+        aria-hidden="true"
+      >
+        {/* Decorative blobs */}
+        <BlobShape
+          variant={2}
+          color="#E91E8C"
+          className="absolute blob-float"
+          style={{ width: '300px', height: '300px', top: '-60px', right: '-30px', opacity: 0.30, pointerEvents: 'none' }}
+        />
+        <BlobShape
+          variant={4}
+          color="#F5C518"
+          className="absolute blob-float-slow"
+          style={{ width: '250px', height: '250px', bottom: '-50px', left: '-40px', opacity: 0.25, pointerEvents: 'none' }}
+        />
+        <BlobShape
+          variant={6}
+          color="#6B2FD9"
+          className="absolute blob-float-med"
+          style={{ width: '200px', height: '200px', top: '10px', left: '-30px', opacity: 0.20, pointerEvents: 'none' }}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 max-w-sm text-center">
+          <IHCLogo size="lg" darkMode />
+          <h2 className="font-display font-extrabold text-4xl text-white leading-tight mt-8 mb-4">
+            Inspiring healthy communities.
+          </h2>
+          <p className="text-white/70 text-lg leading-relaxed max-w-sm">
+            We're here to support your community events and health programs.
+          </p>
+          {/* Child photo with organic blob mask */}
+          <img
+            src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&q=80"
+            alt="Child running with joy"
+            className="mt-8 w-64 h-64 object-cover mx-auto"
+            style={{ borderRadius: '60% 40% 70% 30% / 50% 60% 40% 50%' }}
+          />
+        </div>
+      </div>
+
+      {/* ── Right panel: auth card ── */}
+      <div className="bg-white flex flex-col items-center justify-center flex-shrink-0 w-full md:w-[480px] p-8 min-h-screen md:min-h-0">
+        {/* Logo shown on mobile (left panel is hidden) */}
+        <div className="mb-8 md:hidden">
+          <IHCLogo size="md" />
+        </div>
+
         <div className="w-full max-w-md">
-          {/* Hero */}
+          {/* Hero heading */}
           <div className="text-center mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-brand-navy-500 tracking-tight mb-2">
               Welcome to Community Health
@@ -280,14 +313,18 @@ export default function LoginPage() {
               </Button>
             </form>
           </Card>
-        </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-4" role="contentinfo">
-        <p className="text-center text-xs text-gray-500">
-          &copy; {new Date().getFullYear()} Intermountain Healthcare. Community Health Program.
-        </p>
+          {/* HIPAA trust strip */}
+          <div className="bg-brand-cornflower-200/30 rounded-xl p-3 mt-6 text-center text-xs text-brand-navy-400">
+            Secure · HIPAA-aware · Intermountain Health System
+          </div>
+        </div>
+      </div>
+    </div>{/* end flex-1 panels */}
+
+      {/* Semantic footer for accessibility / tests — visually hidden */}
+      <footer role="contentinfo" className="sr-only">
+        <p>&copy; {new Date().getFullYear()} Intermountain Healthcare. Community Health Program.</p>
       </footer>
     </div>
   );

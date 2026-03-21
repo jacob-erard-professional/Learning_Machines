@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import BlobShape from '../components/ui/BlobShape.jsx';
 import FilterBar from '../components/FilterBar.jsx';
 import TicketQueue from '../components/TicketQueue.jsx';
 import RequestDetail from '../components/RequestDetail.jsx';
@@ -60,8 +61,18 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="h-[calc(100vh-64px-52px)] flex flex-col">
-      {/* Page header */}
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 64px - 52px)' }}>
+      {/* ICH Hero Banner */}
+      <div className="relative overflow-hidden bg-brand-navy-500 py-10 px-6 shrink-0" style={{ backgroundColor: '#1A1A4E' }}>
+        <BlobShape variant={4} color="#F5C518" className="absolute blob-float" style={{ width: '180px', height: '180px', top: '-40px', right: '5%', opacity: 0.25, pointerEvents: 'none' }} />
+        <BlobShape variant={6} color="#F4A07A" className="absolute blob-float-slow" style={{ width: '140px', height: '140px', bottom: '-30px', right: '15%', opacity: 0.20, pointerEvents: 'none' }} />
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white mb-1" style={{ color: 'white' }}>Admin Dashboard</h1>
+          <p className="text-brand-periwinkle-300 text-sm" style={{ color: '#A8B4F8' }}>Manage and fulfill community health requests.</p>
+        </div>
+      </div>
+
+      {/* Page sub-header */}
       <div className="bg-white border-b border-gray-100 px-6 py-3 shrink-0">
         <div className="flex items-center justify-between">
           <div>
