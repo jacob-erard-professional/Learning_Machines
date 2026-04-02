@@ -30,6 +30,7 @@ import { sendConfirmationEmail, sendGeneratedEmail } from '../lib/mailer.js';
 import { findSimilarRequests } from '../lib/memory.js';
 import { FulfillmentRoute, RequestStatus } from '../lib/enums.js';
 import { assignStaffToRequest } from '../services/staffService.js';
+import { rejectIfReadOnlyAdmin } from '../lib/requestAuth.js';
 
 const router = Router();
 
@@ -204,6 +205,8 @@ router.get('/:id', async (req, res) => {
  */
 router.patch('/:id', (req, res) => {
   try {
+    if (rejectIfReadOnlyAdmin(req, res)) return;
+
     const request = getRequestById(req.params.id);
     if (!request) {
       return res.status(404).json({
@@ -270,6 +273,8 @@ router.patch('/:id', (req, res) => {
  */
 router.post('/:id/approve', async (req, res) => {
   try {
+    if (rejectIfReadOnlyAdmin(req, res)) return;
+
     const request = getRequestById(req.params.id);
     if (!request) {
       return res.status(404).json({
@@ -340,6 +345,8 @@ router.post('/:id/approve', async (req, res) => {
  */
 router.post('/:id/reject', async (req, res) => {
   try {
+    if (rejectIfReadOnlyAdmin(req, res)) return;
+
     const { reason } = req.body;
     if (!reason || !String(reason).trim()) {
       return res.status(400).json({
@@ -389,6 +396,8 @@ router.post('/:id/reject', async (req, res) => {
  */
 router.post('/:id/hold', async (req, res) => {
   try {
+    if (rejectIfReadOnlyAdmin(req, res)) return;
+
     const request = getRequestById(req.params.id);
     if (!request) {
       return res.status(404).json({

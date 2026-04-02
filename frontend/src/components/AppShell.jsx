@@ -41,7 +41,7 @@ export default function AppShell() {
     return <Navigate to="/login" replace />;
   }
 
-  const navItems = role === 'admin' ? ADMIN_NAV : GUEST_NAV;
+  const navItems = role === 'admin' || role === 'readonly_admin' ? ADMIN_NAV : GUEST_NAV;
 
   function handleLogout() {
     logout();

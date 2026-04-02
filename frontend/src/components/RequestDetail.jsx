@@ -12,6 +12,7 @@ import LoadingSpinner from './ui/LoadingSpinner.jsx';
 import AiInsightsPanel from './AiInsightsPanel.jsx';
 import useRequests from '../hooks/useRequests.js';
 import useSpeechDictation from '../hooks/useSpeechDictation.js';
+import useAuth from '../hooks/useAuth.js';
 
 const TABS = ['Overview', 'AI Insights', 'Audit Log'];
 
@@ -39,6 +40,8 @@ const STATUS_OPTIONS = [
  * @returns {JSX.Element}
  */
 export default function RequestDetail({ requestId, onClose, onUpdated }) {
+  const role = useAuth((s) => s.role);
+  const isReadOnlyAdmin = role === 'readonly_admin';
   const [activeTab, setActiveTab] = useState('Overview');
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -96,7 +99,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
   }
 
   async function handleSave() {
-    if (Object.keys(editedFields).length === 0) return;
+    if (isReadOnlyAdmin || Object.keys(editedFields).length === 0) return;
     setSaving(true);
     try {
       const updated = await apiPatch(`/api/requests/${requestId}`, editedFields);
@@ -113,6 +116,8 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
   }
 
   function initiateAction(action) {
+    if (isReadOnlyAdmin) return;
+
     // If AI confidence is high and we're overriding, show confirmation
     const highConfidence = request?.aiConfidence === 'high';
     const isOverriding = action === 'approve' && request?.aiSuggestedRoute && request.fulfillmentRoute !== request.aiSuggestedRoute;
@@ -228,7 +233,12 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
 
       {/* Action buttons */}
       <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2 shrink-0">
-        {(merged.status === 'pending' || merged.status === 'needs_review') && (
+        {isReadOnlyAdmin ? (
+          <div className="rounded-lg border border-brand-periwinkle-200 bg-brand-periwinkle-50 px-3 py-2 text-sm text-brand-navy-500">
+            Read-only admin access: you can review all request details, but editing and workflow actions are disabled.
+          </div>
+        ) : null}
+        {!isReadOnlyAdmin && (merged.status === 'pending' || merged.status === 'needs_review') && (
           <>
             <Button
               variant="primary"
@@ -259,7 +269,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
             </Button>
           </>
         )}
-        {merged.status === 'approved' && (
+        {!isReadOnlyAdmin && merged.status === 'approved' && (
           <Button
             variant="secondary"
             size="sm"
@@ -310,22 +320,22 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
             <div className="p-5 space-y-5">
               {/* Requestor section */}
               <Section title="Requestor">
-                <EditableField label="Full Name" name="requestorName" value={merged.requestorName} onChange={handleFieldChange} />
-                <EditableField label="Email" name="requestorEmail" type="email" value={merged.requestorEmail} onChange={handleFieldChange} />
-                <EditableField label="Phone" name="requestorPhone" type="tel" value={merged.requestorPhone} onChange={handleFieldChange} />
+                <EditableField label="Full Name" name="requestorName" value={merged.requestorName} onChange={handleFieldChange} disabled={isReadOnlyAdmin} />
+                <EditableField label="Email" name="requestorEmail" type="email" value={merged.requestorEmail} onChange={handleFieldChange} disabled={isReadOnlyAdmin} />
+                <EditableField label="Phone" name="requestorPhone" type="tel" value={merged.requestorPhone} onChange={handleFieldChange} disabled={isReadOnlyAdmin} />
                 {request.alternateContactName && (
-                  <EditableField label="Alt. Contact" name="alternateContactName" value={merged.alternateContactName} onChange={handleFieldChange} />
+                  <EditableField label="Alt. Contact" name="alternateContactName" value={merged.alternateContactName} onChange={handleFieldChange} disabled={isReadOnlyAdmin} />
                 )}
               </Section>
 
               {/* Event section */}
               <Section title="Event Details">
-                <EditableField label="Event Name" name="eventName" value={merged.eventName} onChange={handleFieldChange} />
-                <EditableField label="Date" name="eventDate" type="date" value={merged.eventDate} onChange={handleFieldChange} />
-                <EditableField label="City" name="eventCity" value={merged.eventCity} onChange={handleFieldChange} />
-                <EditableField label="ZIP" name="eventZip" value={merged.eventZip} onChange={handleFieldChange} />
+                <EditableField label="Event Name" name="eventName" value={merged.eventName} onChange={handleFieldChange} disabled={isReadOnlyAdmin} />
+                <EditableField label="Date" name="eventDate" type="date" value={merged.eventDate} onChange={handleFieldChange} disabled={isReadOnlyAdmin} />
+                <EditableField label="City" name="eventCity" value={merged.eventCity} onChange={handleFieldChange} disabled={isReadOnlyAdmin} />
+                <EditableField label="ZIP" name="eventZip" value={merged.eventZip} onChange={handleFieldChange} disabled={isReadOnlyAdmin} />
                 {request.estimatedAttendees && (
-                  <EditableField label="Attendees" name="estimatedAttendees" type="number" value={String(merged.estimatedAttendees || '')} onChange={handleFieldChange} />
+                  <EditableField label="Attendees" name="estimatedAttendees" type="number" value={String(merged.estimatedAttendees || '')} onChange={handleFieldChange} disabled={isReadOnlyAdmin} />
                 )}
               </Section>
 
@@ -370,6 +380,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                     name="fulfillmentRoute"
                     value={merged.fulfillmentRoute}
                     onChange={handleFieldChange}
+                    disabled={isReadOnlyAdmin}
                     className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
                     aria-label="Fulfillment route override"
                   >
@@ -385,6 +396,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                     name="status"
                     value={merged.status}
                     onChange={handleFieldChange}
+                    disabled={isReadOnlyAdmin}
                     className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
                     aria-label="Status override"
                   >
@@ -400,16 +412,18 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                 <div>
                   <div className="mb-1 flex items-center justify-between gap-2">
                     <label htmlFor="detail-admin-notes" className="block text-xs font-medium text-gray-500">Internal Notes</label>
-                    <VoiceDictationButton
-                      isRecording={adminNotesDictation.isRecording}
-                      isPolishing={adminNotesDictation.isPolishing}
-                      onClick={() =>
-                        adminNotesDictation.isRecording
-                          ? adminNotesDictation.stopDictation()
-                          : adminNotesDictation.startDictation(merged.adminNotes || '')
-                      }
-                      label="Admin notes"
-                    />
+                    {!isReadOnlyAdmin ? (
+                      <VoiceDictationButton
+                        isRecording={adminNotesDictation.isRecording}
+                        isPolishing={adminNotesDictation.isPolishing}
+                        onClick={() =>
+                          adminNotesDictation.isRecording
+                            ? adminNotesDictation.stopDictation()
+                            : adminNotesDictation.startDictation(merged.adminNotes || '')
+                        }
+                        label="Admin notes"
+                      />
+                    ) : null}
                   </div>
                   <textarea
                     id="detail-admin-notes"
@@ -417,6 +431,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
                     rows={3}
                     value={merged.adminNotes || ''}
                     onChange={handleFieldChange}
+                    disabled={isReadOnlyAdmin}
                     className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white resize-y transition-colors"
                     placeholder="Add internal notes..."
                   />
@@ -427,7 +442,7 @@ export default function RequestDetail({ requestId, onClose, onUpdated }) {
               </Section>
 
               {/* Save button */}
-              {hasChanges && (
+              {!isReadOnlyAdmin && hasChanges && (
                 <div className="flex justify-end pt-2">
                   <Button
                     type="button"
@@ -616,7 +631,7 @@ function Section({ title, children }) {
 }
 
 /** Editable labeled field */
-function EditableField({ label, name, value, onChange, type = 'text' }) {
+function EditableField({ label, name, value, onChange, type = 'text', disabled = false }) {
   return (
     <div>
       <label htmlFor={`detail-${name}`} className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
@@ -626,6 +641,7 @@ function EditableField({ label, name, value, onChange, type = 'text' }) {
         type={type}
         value={value || ''}
         onChange={onChange}
+        disabled={disabled}
         className="block w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-purple-500 focus:border-brand-purple-500 focus:bg-white transition-colors"
       />
     </div>

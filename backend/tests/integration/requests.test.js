@@ -399,6 +399,19 @@ describe('PATCH /api/requests/:id', () => {
     expect(res.body.error).toBe('NOT_FOUND');
   });
 
+  it('returns 403 for the read-only admin role', async () => {
+    const create = await request(app).post('/api/requests').send(VALID_BODY);
+    const id = create.body.id;
+
+    const res = await request(app)
+      .patch(`/api/requests/${id}`)
+      .set('X-User-Role', 'readonly_admin')
+      .send({ adminNotes: 'Attempted update.' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('READ_ONLY_FORBIDDEN');
+  });
+
   it('stamps updatedAt on update', async () => {
     const create = await request(app).post('/api/requests').send(VALID_BODY);
     const id = create.body.id;
@@ -438,6 +451,21 @@ describe('POST /api/requests/:id/approve', () => {
       messageId: 'mock-approved-message-id',
     });
   });
+
+  it('returns 403 for the read-only admin role', async () => {
+    const create = await request(app)
+      .post('/api/requests')
+      .send({ ...VALID_BODY, requestType: 'mailed_materials' });
+    const id = create.body.id;
+
+    const res = await request(app)
+      .post(`/api/requests/${id}/approve`)
+      .set('X-User-Role', 'readonly_admin')
+      .send({});
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('READ_ONLY_FORBIDDEN');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -471,6 +499,19 @@ describe('POST /api/requests/:id/reject', () => {
       messageId: 'mock-rejection-message-id',
     });
   });
+
+  it('returns 403 for the read-only admin role', async () => {
+    const create = await request(app).post('/api/requests').send(VALID_BODY);
+    const id = create.body.id;
+
+    const res = await request(app)
+      .post(`/api/requests/${id}/reject`)
+      .set('X-User-Role', 'readonly_admin')
+      .send({ reason: 'Blocked.' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('READ_ONLY_FORBIDDEN');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -494,6 +535,19 @@ describe('POST /api/requests/:id/hold', () => {
       subject: 'mock-held',
       messageId: 'mock-held-message-id',
     });
+  });
+
+  it('returns 403 for the read-only admin role', async () => {
+    const create = await request(app).post('/api/requests').send(VALID_BODY);
+    const id = create.body.id;
+
+    const res = await request(app)
+      .post(`/api/requests/${id}/hold`)
+      .set('X-User-Role', 'readonly_admin')
+      .send({ note: 'Blocked.' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('READ_ONLY_FORBIDDEN');
   });
 });
 

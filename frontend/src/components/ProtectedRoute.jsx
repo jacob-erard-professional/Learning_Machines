@@ -7,7 +7,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import useAuth from '../hooks/useAuth.js';
 
 /**
- * Wraps admin routes — renders child routes via <Outlet> if role is 'admin',
+ * Wraps admin routes — renders child routes via <Outlet> if role can access
  * otherwise redirects to /login.
  *
  * @returns {JSX.Element}
@@ -15,7 +15,7 @@ import useAuth from '../hooks/useAuth.js';
 export default function ProtectedRoute() {
   const role = useAuth((s) => s.role);
 
-  if (role !== 'admin') {
+  if (role !== 'admin' && role !== 'readonly_admin') {
     return <Navigate to="/login" replace />;
   }
 

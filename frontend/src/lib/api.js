@@ -5,6 +5,16 @@
  */
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const SESSION_KEY = 'ihc_auth_role';
+
+function getStoredRole() {
+  try {
+    const role = sessionStorage.getItem(SESSION_KEY);
+    return role || null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Core fetch wrapper. Parses JSON responses and throws structured errors
@@ -17,9 +27,11 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
  */
 async function apiFetch(path, options = {}) {
   const url = `${BASE_URL}${path}`;
+  const role = getStoredRole();
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
+      ...(role ? { 'X-User-Role': role } : {}),
       ...options.headers,
     },
     ...options,

@@ -6,11 +6,19 @@
 
 import { create } from 'zustand';
 
-/** @typedef {'guest'|'admin'|null} Role */
+/** @typedef {'guest'|'admin'|'readonly_admin'|null} Role */
 
-const ADMIN_EMAIL = 'admin@ihc.org';
-const ADMIN_PASSWORD = 'admin123';
-const SESSION_KEY = 'ihc_auth_role';
+const ADMIN_CREDENTIALS = {
+  admin: {
+    email: 'admin@ihc.org',
+    password: 'admin123',
+  },
+  readonly_admin: {
+    email: 'viewer@ihc.org',
+    password: 'viewer123',
+  },
+};
+export const SESSION_KEY = 'ihc_auth_role';
 
 /**
  * Read persisted role from sessionStorage.
@@ -20,7 +28,7 @@ const SESSION_KEY = 'ihc_auth_role';
 function readPersistedRole() {
   try {
     const stored = sessionStorage.getItem(SESSION_KEY);
-    return stored === 'admin' || stored === 'guest' ? stored : null;
+    return stored === 'admin' || stored === 'readonly_admin' || stored === 'guest' ? stored : null;
   } catch {
     return null;
   }
@@ -46,14 +54,14 @@ function persistRole(role) {
  * Zustand store for authentication state.
  *
  * State:
- * - role: Current user role ('guest' | 'admin' | null)
+ * - role: Current user role ('guest' | 'admin' | 'readonly_admin' | null)
  *   null = unauthenticated, redirect to /login
  * - loading: Admin login in progress
  * - error: Login error message (invalid credentials, etc.)
  *
  * Actions:
  * - loginAsGuest(): Set role to 'guest', no credentials needed
- * - loginAsAdmin(email, password): Validate credentials, set role to 'admin' or set error
+ * - loginAsAdmin(email, password): Validate credentials, set admin role or set error
  * - logout(): Clear role and sessionStorage
  */
 const useAuth = create((set) => ({
@@ -78,12 +86,14 @@ const useAuth = create((set) => ({
   loginAsAdmin: (email, password) => {
     set({ loading: true, error: null });
     setTimeout(() => {
-      if (
-        email.trim().toLowerCase() === ADMIN_EMAIL &&
-        password === ADMIN_PASSWORD
-      ) {
-        persistRole('admin');
-        set({ role: 'admin', loading: false });
+      const normalizedEmail = email.trim().toLowerCase();
+      const matchedRole = Object.entries(ADMIN_CREDENTIALS).find(([, credentials]) =>
+        credentials.email === normalizedEmail && credentials.password === password
+      )?.[0] ?? null;
+
+      if (matchedRole) {
+        persistRole(matchedRole);
+        set({ role: matchedRole, loading: false });
       } else {
         set({ loading: false, error: 'Invalid email or password.' });
       }
