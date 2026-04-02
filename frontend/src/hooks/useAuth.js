@@ -11,7 +11,7 @@ import { create } from 'zustand';
 const ADMIN_CREDENTIALS = {
   admin: {
     email: 'admin@ihc.org',
-    password: 'admin123',
+    password: '676767676769',
   },
   readonly_admin: {
     email: 'viewer@ihc.org',
